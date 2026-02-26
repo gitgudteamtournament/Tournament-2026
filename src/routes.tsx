@@ -1,14 +1,7 @@
-import { Routes, Route } from "react-router-dom";
-import Home from "./components/Home";
-import About from "./components/About";
+import type { RouteObject } from "react-router-dom";
+import Login from "./components/login"
 
-const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-        </Routes>
-    );
-};
-
-export default AppRoutes;
+const routes: RouteObject[] = [
+    { path: "/", element: <Login /> },
+];
+export default routes;
