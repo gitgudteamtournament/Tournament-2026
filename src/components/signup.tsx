@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
-export default function RegistrationPage() {
+export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -20,25 +20,10 @@ export default function RegistrationPage() {
 
         <div className="w-full max-w-[1000px] backdrop-blur-3xl bg-gradient-to-br from-white/55 to-white/25 shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-white/40 rounded-[30px] p-6 sm:p-10 md:p-12 relative z-10">
           <h1 className="text-center text-[20px] sm:text-[22px] font-bold tracking-wide text-gray-900 mb-8">
-            РЕЄСТРАЦІЯ
+            ВХІД
           </h1>
 
           <form className="space-y-5">
-            <div>
-              <label htmlFor="name" className="block text-[14px] sm:text-[15px] text-gray-800 font-medium mb-1.5 ml-1">
-                Ім'я
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                aria-label="Ім'я"
-                maxLength={50}
-                className="w-full h-12 rounded-2xl bg-white/70 px-4 outline-none focus:ring-2 focus:ring-[#485cea] transition border border-white/50 backdrop-blur-md shadow-inner appearance-none"
-              />
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-[14px] sm:text-[15px] text-gray-800 font-medium mb-1.5 ml-1">
                 Електронна пошта
@@ -93,9 +78,9 @@ export default function RegistrationPage() {
 
             <div className="pt-2 pb-2">
               <p className="text-[13px] sm:text-[14px] text-center text-gray-800">
-                Вже є акаунт?{" "}
-                <Link to="/signup" className="text-[#5c75ff] hover:text-blue-600 hover:underline transition-colors">
-                  Увійти
+                Немає акаунту?{" "}
+                <Link to="/" className="text-[#5c75ff] hover:text-blue-600 hover:underline transition-colors">
+                  Зареєструватись
                 </Link>
               </p>
             </div>
@@ -104,7 +89,7 @@ export default function RegistrationPage() {
               type="submit"
               className="w-full bg-[#465ae0] hover:bg-[#3649c9] text-white font-medium text-[15px] sm:text-[16px] py-3.5 rounded-2xl shadow-[0_12px_30px_rgba(70,90,224,0.4)] hover:shadow-[0_15px_40px_rgba(70,90,224,0.5)] transition-all duration-300 active:scale-[0.97]"
             >
-              Зареєструватися
+              Увійти
             </button>
           </form>
         </div>
