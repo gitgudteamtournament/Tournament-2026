@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        input { display: block; margin: 5px 0; }
+        button { margin-top: 10px; }
+        .response { margin-top: 10px; color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<h2>Login</h2>
+<input type="email" id="login" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<div class="response" id="response"></div>
+<a href="register.html">Don't have an account? Register</a>
+
+<script>
+    function login() {
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+
+        fetch('http://localhost:8080/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login, password })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Invalid credentials');
+            return res.text();
+        })
+        .then(token => {
+            // Зберігаємо JWT в localStorage
+            localStorage.setItem('jwtToken', token);
+            // Зберігаємо email як login
+            localStorage.setItem('userLogin', login);
+
+            document.getElementById('response').innerText = 'Login successful!';
+            document.getElementById('response').className = 'response';
+
+            // Можна отримати name через захищений ендпоінт
+            // Тут просто редирект на головну
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        })
+        .catch(err => {
+            document.getElementById('response').innerText = err.message;
+            document.getElementById('response').className = 'error';
+        });
+    }
+</script>
+</body>
+</html>
