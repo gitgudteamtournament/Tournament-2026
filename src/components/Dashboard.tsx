@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TeamRegOverlay, { RegistrationHeader } from "./Overlay/teamRegOverlay";
 import TourStatOverlay from "./Overlay/tourStatOverlay";
@@ -50,6 +50,10 @@ const CloseIcon = () => (
     </svg>
 );
 
+const AnnouncementIcon = () => (
+        <img src="/Alert.png" alt="" />
+);
+
 interface TournamentCardProps {
     title: string;
     hasSubmit?: boolean;
@@ -87,6 +91,18 @@ const TournamentCard = ({ title, hasSubmit = false, isTeamView = false, onDetail
 
 const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProfileClick: () => void }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const notifRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+                setIsNotifOpen(false);
+            }
+        };
+        if (isNotifOpen) document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isNotifOpen]);
 
     return (
         <>
@@ -113,12 +129,58 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                 </nav>
 
                 <div className="flex items-center gap-3 md:gap-5">
-                    <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center shadow-lg shadow-[#5c75ff]/30"
-                    >
-                        <BellIcon />
-                    </motion.button>
+                    <div className="relative" ref={notifRef}>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setIsNotifOpen(!isNotifOpen)}
+                            className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center shadow-lg shadow-[#5c75ff]/30 relative"
+                        >
+                            <BellIcon />
+                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#ff4d4d] border-2 border-white rounded-full" />
+                        </motion.button>
+
+                        <AnimatePresence>
+                            {isNotifOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                    className="absolute right-0 mt-4 w-[320px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-black/5 overflow-hidden"
+                                >
+                                    <div className="px-6 py-4 border-b border-black/5 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <AnnouncementIcon />
+                                            <span className="text-[14px] font-bold text-[#1e293b]">Оголошення</span>
+                                        </div>
+                                        <button title = "BellICo" onClick={() => setIsNotifOpen(false)} className="opacity-40 hover:opacity-100 transition-opacity">
+                                            <CloseIcon />
+                                        </button>
+                                    </div>
+                                    <div className="max-h-[360px] overflow-y-auto">
+                                        <div className="p-6 border-b border-black/5 hover:bg-gray-50 transition-colors cursor-pointer">
+                                            <div className="flex gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#5c75ff] mt-2 shrink-0" />
+                                                <div>
+                                                    <h4 className="text-[14px] font-bold text-[#1e293b]">Заголовок</h4>
+                                                    <p className="text-[13px] text-[#1e293b]/60 leading-snug">Текст оголошення, який пояснює суть події.</p>
+                                                    <span className="text-[10px] font-bold text-black/20 uppercase mt-2 block">Щойно</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-6 hover:bg-gray-50 transition-colors cursor-pointer">
+                                            <div className="ml-4">
+                                                <h4 className="text-[14px] font-bold text-[#1e293b]">Заголовок</h4>
+                                                <p className="text-[13px] text-[#1e293b]/60 leading-snug">Текст</p>
+                                                <a href="#" className="text-[12px] text-[#5c75ff] font-bold hover:underline">посилання</a>
+                                                <span className="text-[10px] font-bold text-black/20 uppercase mt-2 block">1 день тому</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
                     <div 
                         onClick={onProfileClick}
@@ -215,7 +277,6 @@ const TournamentsList = ({ onDetailClick, onTeamDetailClick }: { onDetailClick: 
         </motion.main>
     );
 };
-
 
 export default function Dashboard() {
     const [showDetails, setShowDetails] = useState(false);
