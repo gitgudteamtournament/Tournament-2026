@@ -4,6 +4,7 @@ import TeamRegOverlay, { RegistrationHeader } from "./Overlay/teamRegOverlay";
 import TourStatOverlay from "./Overlay/tourStatOverlay";
 import TourViewOverlay from "./Overlay/tourViewOverlay";
 import ProfileUserOverlay from "./Overlay/ProfileUserOverlay";
+import NoTours from "./Overlay/NoTours";
 
 const RobotoFont = () => (
     <style
@@ -223,7 +224,7 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
     );
 };
 
-const TournamentsList = ({ onDetailClick, onTeamDetailClick }: { onDetailClick: () => void; onTeamDetailClick: () => void }) => {
+const TournamentsList = ({ onDetailClick, onTeamDetailClick, toursCount = 0 }: { onDetailClick: () => void; onTeamDetailClick: () => void; toursCount?: number }) => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement | null>(null);
     const filterBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -240,40 +241,46 @@ const TournamentsList = ({ onDetailClick, onTeamDetailClick }: { onDetailClick: 
 
     return (
         <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-8 space-y-10">
-            <section className="rounded-[30px] bg-[#FFFFFF26] backdrop-blur-[35px] border border-white/40 p-6 md:p-10 shadow-sm relative overflow-hidden">
-                <h2 className="text-[22px] md:text-[28px] font-bold mb-8">Ваші турніри</h2>
-                <div className="w-full max-w-[340px]">
-                    <TournamentCard title="Назва" hasSubmit isTeamView onDetailClick={onTeamDetailClick} />
-                </div>
-            </section>
+            {toursCount === 0 ? (
+                <NoTours />
+            ) : (
+                <>
+                    <section className="rounded-[30px] bg-[#FFFFFF26] backdrop-blur-[35px] border border-white/40 p-6 md:p-10 shadow-sm relative overflow-hidden">
+                        <h2 className="text-[22px] md:text-[28px] font-bold mb-8">Ваші турніри</h2>
+                        <div className="w-full max-w-[340px]">
+                            <TournamentCard title="Назва" hasSubmit isTeamView onDetailClick={onTeamDetailClick} />
+                        </div>
+                    </section>
 
-            <section className="rounded-[30px] bg-[#FFFFFF26] backdrop-blur-[35px] border border-white/40 p-6 md:p-10 shadow-sm relative overflow-hidden">
-                <div className="flex items-center justify-between mb-10 pt-1">
-                    <h2 className="text-[22px] md:text-[28px] font-bold">Турніри</h2>
-                    <div className="relative">
-                        <motion.button
-                            ref={filterBtnRef}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setIsFilterOpen(!isFilterOpen)}
-                            className="w-[54px] h-[36px] rounded-[10px] bg-[#5c75ff] flex items-center justify-center gap-1 shadow-md hover:brightness-110 transition-all"
-                        >
-                            <ChevronIcon /><FilterIcon />
-                        </motion.button>
-                        <AnimatePresence>
-                            {isFilterOpen && (
-                                <motion.div ref={filterRef} initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }} className="absolute right-0 mt-3 w-[220px] bg-white/80 backdrop-blur-[20px] border border-white/60 rounded-[20px] shadow-xl z-50 overflow-hidden py-2">
-                                    {["Registration open", "Running", "Finished"].map((item) => (
-                                        <button key={item} onClick={() => setIsFilterOpen(false)} className="w-full text-left px-5 py-3 hover:bg-[#5c75ff]/10 text-[15px] font-bold text-[#1e293b] transition-colors">{item}</button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {[...Array(6)].map((_, i) => <TournamentCard key={i} title="Назва" onDetailClick={onDetailClick} />)}
-                </div>
-            </section>
+                    <section className="rounded-[30px] bg-[#FFFFFF26] backdrop-blur-[35px] border border-white/40 p-6 md:p-10 shadow-sm relative overflow-hidden">
+                        <div className="flex items-center justify-between mb-10 pt-1">
+                            <h2 className="text-[22px] md:text-[28px] font-bold">Турніри</h2>
+                            <div className="relative">
+                                <motion.button
+                                    ref={filterBtnRef}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                    className="w-[54px] h-[36px] rounded-[10px] bg-[#5c75ff] flex items-center justify-center gap-1 shadow-md hover:brightness-110 transition-all"
+                                >
+                                    <ChevronIcon /><FilterIcon />
+                                </motion.button>
+                                <AnimatePresence>
+                                    {isFilterOpen && (
+                                        <motion.div ref={filterRef} initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }} className="absolute right-0 mt-3 w-[220px] bg-white/80 backdrop-blur-[20px] border border-white/60 rounded-[20px] shadow-xl z-50 overflow-hidden py-2">
+                                            {["Registration open", "Running", "Finished"].map((item) => (
+                                                <button key={item} onClick={() => setIsFilterOpen(false)} className="w-full text-left px-5 py-3 hover:bg-[#5c75ff]/10 text-[15px] font-bold text-[#1e293b] transition-colors">{item}</button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                            {[...Array(toursCount)].map((_, i) => <TournamentCard key={i} title="Назва" onDetailClick={onDetailClick} />)}
+                        </div>
+                    </section>
+                </>
+            )}
         </motion.main>
     );
 };
@@ -283,6 +290,8 @@ export default function Dashboard() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [viewingTournamentAsTeam, setViewingTournamentAsTeam] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    
+    const tours: any[] = [];
 
     const resetView = () => {
         setShowDetails(false);
@@ -320,6 +329,7 @@ export default function Dashboard() {
                     ) : !showDetails ? (
                         <TournamentsList
                             key="list"
+                            toursCount={tours.length}
                             onDetailClick={() => setShowDetails(true)}
                             onTeamDetailClick={() => setViewingTournamentAsTeam(true)}
                         />
