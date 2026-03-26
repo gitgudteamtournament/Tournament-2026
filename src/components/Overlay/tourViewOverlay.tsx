@@ -1,5 +1,6 @@
 import React, { useState, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import NoCertificateOverlay from "./NoCertificateOverlay";
 
 const BackChevronIcon = () => (
     <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#5c75ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -153,14 +154,20 @@ const FormField = ({ label, placeholder = "", isTextArea = false, required = fal
     );
 };
 
-export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
+interface TourViewOverlayProps {
+    onBack: () => void;
+    onOpenCertificate?: () => void;
+}
+
+export default function TourViewOverlay({ onBack, onOpenCertificate }: TourViewOverlayProps) {
     const [isRound1Expanded, setIsRound1Expanded] = useState(true);
     const [isRound2Expanded, setIsRound2Expanded] = useState(false);
     const [isRound3Expanded, setIsRound3Expanded] = useState(false);
     const [isCertExpanded, setIsCertExpanded] = useState(false);
-    const [activeTab, setActiveTab] = useState<'task' | 'submit'>('task');
+    const [activeTab, setActiveTab] = useState<'task' | 'submit' | 'certificate'>('task');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isDeadlinePassed] = useState(false);
+    const [showNoCert, setShowNoCert] = useState(false);
 
     return (
         <motion.div
@@ -177,14 +184,14 @@ export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
                 </button>
                 <h1 className="text-[26px] font-bold text-[#0f172a] leading-tight">Назва</h1>
                 <div className="space-y-4 pt-1">
-                    <SidebarButton title="Раунд 1" isExpandable isExpanded={isRound1Expanded} isActive={isRound1Expanded} onClick={() => setIsRound1Expanded(!isRound1Expanded)}>
+                    <SidebarButton title="Раунд 1" isExpandable isExpanded={isRound1Expanded} isActive={isRound1Expanded && activeTab !== 'certificate'} onClick={() => setIsRound1Expanded(!isRound1Expanded)}>
                         <SidebarSubButton title="Завдання" isActive={activeTab === 'task'} onClick={() => setActiveTab('task')} />
                         <SidebarSubButton title="Подача завдання" isActive={activeTab === 'submit'} onClick={() => setActiveTab('submit')} />
                     </SidebarButton>
                     <SidebarButton title="Раунд 2" isExpandable isExpanded={isRound2Expanded} onClick={() => setIsRound2Expanded(!isRound2Expanded)} />
                     <SidebarButton title="Раунд 3" isExpandable isExpanded={isRound3Expanded} onClick={() => setIsRound3Expanded(!isRound3Expanded)} />
-                    <SidebarButton title="Сертифікат" isExpandable isExpanded={isCertExpanded} onClick={() => setIsCertExpanded(!isCertExpanded)}>
-                        <SidebarSubButton title="Отримайте сертифікат" />
+                    <SidebarButton title="Сертифікат" isExpandable isExpanded={isCertExpanded} isActive={activeTab === 'certificate'} onClick={() => setIsCertExpanded(!isCertExpanded)}>
+                        <SidebarSubButton title="Отримайте сертифікат" isActive={activeTab === 'certificate'} onClick={() => setActiveTab('certificate')} />
                     </SidebarButton>
                 </div>
             </aside>
@@ -257,18 +264,47 @@ export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
 
                                 <section className="space-y-5 pt-2 relative">
                                     <h3 className="text-[22px] font-bold text-[#1e293b]">Додаткові матеріали</h3>
-                                    <p className="text-[15px] font-medium text-[#1e293b]/80 leading-relaxed">Матеріали, які допоможуть вам виконати завдання до этого раунду.</p>
+                                    <p className="text-[15px] font-medium text-[#1e293b]/80 leading-relaxed">Матеріали, які допоможуть вам виконати завдання до цього раунду.</p>
                                     <div className="space-y-4 max-w-[640px]">
                                         <FileLinkItem type="file" title="Назва" subtitle="Файл" />
                                         <FileLinkItem type="link" title="Назва" subtitle="Посилання" />
                                     </div>
                                 </section>
                             </motion.div>
+                        ) : activeTab === 'certificate' ? (
+                            <motion.div
+                                key="certificate-view"
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
+                                className="space-y-10 relative"
+                            >
+                                <AnimatePresence>
+                                    {showNoCert && <NoCertificateOverlay onClose={() => setShowNoCert(false)} />}
+                                </AnimatePresence>
+
+                                <header className="space-y-2">
+                                    <h2 className="text-[32px] font-bold text-[#0f172a] leading-tight">Згенерувати сертифікат</h2>
+                                    <p className="text-[16px] font-medium text-[#1e293b]/60">Введіть дані, які будуть відображені у сертифікаті.</p>
+                                </header>
+
+                                <form className="space-y-6 max-w-[600px]" onSubmit={(e) => e.preventDefault()}>
+                                    <FormField label="Введіть ім'я" required />
+                                    <FormField label="Введіть прізвище" required />
+
+                                    <div className="pt-4 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNoCert(true)}
+                                            className="px-10 h-[50px] rounded-[16px] bg-[#5c75ff] text-white font-bold text-[15px] shadow-lg shadow-[#5c75ff]/25 hover:brightness-110 active:scale-95 transition-all"
+                                        >
+                                            Згенерувати
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
                         ) : isSubmitted ? (
-                            <motion.div 
-                                key="success-view" 
-                                initial={{ opacity: 0, y: 20 }} 
-                                animate={{ opacity: 1, y: 0 }} 
+                            <motion.div
+                                key="success-view"
+                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}
                                 className="space-y-12"
                             >
                                 <header className="space-y-2">
@@ -294,7 +330,7 @@ export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
 
                                 {!isDeadlinePassed && (
                                     <div className="flex justify-end pt-4 max-w-[900px]">
-                                        <button 
+                                        <button
                                             onClick={() => setIsSubmitted(false)}
                                             className="px-12 h-[56px] rounded-[18px] bg-[#5c75ff] text-white font-bold text-[16px] shadow-xl shadow-[#5c75ff]/25 hover:brightness-110 active:scale-95 transition-all"
                                         >
@@ -304,7 +340,7 @@ export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
                                 )}
                             </motion.div>
                         ) : (
-                            <motion.div key="submit-view" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+                            <motion.div key="submit-view" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.3 }} className="space-y-8">
                                 <header>
                                     <h2 className="text-[32px] font-bold text-[#0f172a] leading-tight">Подача результатів</h2>
                                     <p className="text-[16px] font-medium text-[#1e293b]/60 mt-1">Завантажте результати виконання завдання цього раунду.</p>
@@ -320,7 +356,7 @@ export default function TourViewOverlay({ onBack }: { onBack: () => void }) {
                                         <button className="px-10 h-[54px] rounded-full bg-[#f1f5f9] text-[#1e293b] font-bold text-[16px] shadow-md hover:bg-[#e2e8f0] transition-all border border-white/50">
                                             Зберегти
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setIsSubmitted(true)}
                                             className="px-12 h-[54px] rounded-full bg-gradient-to-r from-[#5c75ff] to-[#6d82ff] text-white font-bold text-[16px] shadow-lg shadow-[#5c75ff]/30 hover:brightness-110 active:scale-95 transition-all"
                                         >
