@@ -152,7 +152,6 @@ export default function ProfileUserOverlay() {
                 </button>
             </section>
 
-            {/* Команда */}
             <section className="bg-white/40 backdrop-blur-[20px] border border-white/60 rounded-[30px] p-10 shadow-sm min-h-[720px] space-y-8">
                 <h2 className="text-[28px] font-bold text-[#1e293b]">Моя команда</h2>
                 <div className="space-y-6">
