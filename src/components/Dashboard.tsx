@@ -8,10 +8,11 @@ import DashboardUserOverlay from "./Overlay/DashboardUserOverlay";
 import DashboardAdminOverlay from "./Overlay/DashboardAdminOverlay";
 import LeaderboardOverlay from "./Overlay/LeaderboardOverlay";
 
-const CURRENT_USER_ROLE: 'Admin' | 'User' = 'Admin'; 
+const CURRENT_USER_ROLE: 'Admin' | 'User' = 'Admin';
 
 const RobotoFont = () => (
-    <style dangerouslySetInnerHTML={{ __html: `
+    <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         .font-roboto { font-family: 'Roboto', sans-serif; }
         html { overflow-y: scroll; height: 100%; }
@@ -59,9 +60,9 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
 
     return (
         <>
-            <motion.header 
-                initial={{ y: -50, opacity: 0 }} 
-                animate={{ y: 0, opacity: 1 }} 
+            <motion.header
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 className="mt-6 rounded-[16px] bg-white shadow-sm border border-black/5 flex items-center justify-between px-4 md:px-10 h-[68px] relative z-[60]"
             >
                 <div className="flex items-center gap-4">
@@ -74,18 +75,27 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                 </div>
 
                 <nav className="hidden lg:flex gap-8 uppercase text-[13px] font-bold text-[#1e293b]">
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">
-                        {CURRENT_USER_ROLE === 'Admin' ? 'Керування' : 'Мої турніри'}
-                    </button>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
+                    {CURRENT_USER_ROLE === 'Admin' ? (
+                        <>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Leaderboard</button>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Архів</button>
+                        </>
+                    ) : (
+                        <>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
+                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
+                        </>
+                    )}
                 </nav>
 
                 <div className="flex items-center gap-3 md:gap-5">
                     <div className="relative" ref={notifRef}>
-                        <motion.button 
-                            whileHover={{ scale: 1.1 }} 
-                            whileTap={{ scale: 0.9 }} 
-                            onClick={() => setIsNotifOpen(!isNotifOpen)} 
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setIsNotifOpen(!isNotifOpen)}
                             className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center shadow-lg shadow-[#5c75ff]/30 relative"
                         >
                             <BellIcon />
@@ -94,7 +104,7 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
 
                         <AnimatePresence>
                             {isNotifOpen && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -109,22 +119,12 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                                             <CloseIcon size={20} />
                                         </button>
                                     </div>
-
                                     <div className="max-h-[400px] overflow-y-auto">
                                         <div className="px-5 py-4 relative hover:bg-gray-50 transition-colors cursor-pointer group">
                                             <div className="absolute left-2 top-6 w-1.5 h-1.5 bg-[#5c75ff] rounded-full" />
                                             <h4 className="font-bold text-[15px] text-[#1e293b] mb-1">Заголовок</h4>
-                                            <p className="text-[14px] text-slate-600 leading-snug mb-2">Текст уведомления, который может занимать несколько строк.</p>
+                                            <p className="text-[14px] text-slate-600 leading-snug mb-2">Текст уведомления.</p>
                                             <span className="text-[12px] text-slate-400">Щойно</span>
-                                        </div>
-
-                                        <div className="mx-5 border-b border-gray-100" />
-
-                                        <div className="px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer">
-                                            <h4 className="font-bold text-[15px] text-[#1e293b] mb-1">Заголовок</h4>
-                                            <p className="text-[14px] text-slate-600 leading-snug">Текст</p>
-                                            <button className="text-[#5c75ff] text-[14px] font-medium hover:underline block mb-2">посилання</button>
-                                            <span className="text-[12px] text-slate-400">1 день тому</span>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -146,9 +146,20 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] lg:hidden" />
                         <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed top-0 left-0 bottom-0 w-64 bg-white z-[58] p-8 pt-24 shadow-2xl lg:hidden">
-                            <nav className="flex flex-col gap-6 uppercase text-sm font-bold">
-                                <button onClick={() => { onHome(); setIsMenuOpen(false); }}>Головна</button>
-                                <button onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
+                            <nav className="flex flex-col gap-6 uppercase text-sm font-bold text-[#1e293b]">
+                                {CURRENT_USER_ROLE === 'Admin' ? (
+                                    <>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Leaderboard</button>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Архів</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
+                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
+                                    </>
+                                )}
                             </nav>
                         </motion.div>
                     </>
@@ -161,13 +172,13 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
 export default function Dashboard() {
     type ViewType = 'main' | 'details' | 'register' | 'teamView' | 'profile' | 'leaderboard';
     const [view, setView] = useState<ViewType>('main');
-    
+
     const resetView = () => setView('main');
 
     return (
         <div className="min-h-screen w-full relative bg-[#f4f7fa] font-roboto antialiased text-[#1e293b]">
             <RobotoFont />
-            
+
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
                 <motion.div animate={{ x: [0, 40, 0], y: [0, 20, 0] }} transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-5%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#C1E130] blur-[120px] opacity-[0.18]" />
                 <motion.div animate={{ x: [0, -30, 0], y: [0, 40, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[5%] right-[-5%] w-[55%] h-[55%] rounded-full bg-[#0C13D4] blur-[140px] opacity-[0.12]" />
@@ -182,29 +193,29 @@ export default function Dashboard() {
 
                 <AnimatePresence mode="wait">
                     {view === 'main' && (
-                        CURRENT_USER_ROLE === 'Admin' 
+                        CURRENT_USER_ROLE === 'Admin'
                             ? <DashboardAdminOverlay key="admin" />
-                            : <DashboardUserOverlay 
-                                key="user" 
-                                onDetailClick={() => setView('details')} 
-                                onTeamDetailClick={() => setView('teamView')} 
-                              />
+                            : <DashboardUserOverlay
+                                key="user"
+                                onDetailClick={() => setView('details')}
+                                onTeamDetailClick={() => setView('teamView')}
+                            />
                     )}
 
                     {view === 'profile' && <ProfileUserOverlay key="profile" />}
                     {view === 'teamView' && <TourViewOverlay key="team" onBack={resetView} />}
                     {view === 'register' && <TeamRegOverlay key="register" />}
                     {view === 'details' && (
-                        <TourStatOverlay 
-                            key="details" 
-                            onRegister={() => setView('register')} 
-                            onLeaderboardClick={() => setView('leaderboard')} 
+                        <TourStatOverlay
+                            key="details"
+                            onRegister={() => setView('register')}
+                            onLeaderboardClick={() => setView('leaderboard')}
                         />
                     )}
                     {view === 'leaderboard' && (
-                        <LeaderboardOverlay 
-                            key="leaderboard" 
-                            onBack={() => setView('details')} 
+                        <LeaderboardOverlay
+                            key="leaderboard"
+                            onBack={() => setView('details')}
                         />
                     )}
                 </AnimatePresence>
