@@ -137,7 +137,11 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                         <div className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5c75ff]/30 group-hover:brightness-110 transition-all">І</div>
                     </button>
 
-                    <button className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all">Вихід</button>
+                    {CURRENT_USER_ROLE !== 'Admin' && (
+                        <button className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all shadow-md active:scale-95">
+                            Вихід
+                        </button>
+                    )}
                 </div>
             </motion.header>
 
@@ -146,7 +150,7 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] lg:hidden" />
                         <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed top-0 left-0 bottom-0 w-64 bg-white z-[58] p-8 pt-24 shadow-2xl lg:hidden">
-                            <nav className="flex flex-col gap-6 uppercase text-sm font-bold text-[#1e293b]">
+                            <nav className="flex flex-col h-full gap-6 uppercase text-sm font-bold text-[#1e293b]">
                                 {CURRENT_USER_ROLE === 'Admin' ? (
                                     <>
                                         <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Leaderboard</button>
@@ -159,6 +163,14 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                                         <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
                                         <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
                                     </>
+                                )}
+
+                                {CURRENT_USER_ROLE !== 'Admin' && (
+                                    <div className="mt-auto pb-10">
+                                        <button className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left">
+                                            Вихід
+                                        </button>
+                                    </div>
                                 )}
                             </nav>
                         </motion.div>
