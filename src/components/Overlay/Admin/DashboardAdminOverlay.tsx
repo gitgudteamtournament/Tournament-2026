@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreateTourOverlay from "./CreateTourOverlay";
 import TourPageRegistrOverlay from "./TourPageRegistrOverlay";
+import TourPageRunningOverlay from "./TourPageRunningOverlay"; // Импортируем новый компонент
 
 const Theme = {
   glass: "bg-white/40 backdrop-blur-[20px] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.04)]",
@@ -11,9 +12,17 @@ const Theme = {
   input: "w-full bg-white border border-slate-200 rounded-[18px] px-4 md:px-6 py-3 md:py-4 outline-none focus:border-[#5c75ff] transition-all text-[14px] md:text-[15px]"
 };
 
+// Иконка трех точек
+const MoreIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+  </svg>
+);
+
 export default function DashboardAdminOverlay() {
   const [showCreateTour, setShowCreateTour] = useState(false);
   const [showTourRegistr, setShowTourRegistr] = useState(false);
+  const [showTourRunning, setShowTourRunning] = useState(false); // Состояние для Running оверлея
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [selectedTourName, setSelectedTourName] = useState("");
@@ -38,6 +47,8 @@ export default function DashboardAdminOverlay() {
   const handleOpenDetails = (status: string) => {
     if (status === "Registration") {
       setShowTourRegistr(true);
+    } else if (status === "Running") {
+      setShowTourRunning(true); // Открываем оверлей для запущенных турниров
     } else {
       console.log("Open other details");
     }
@@ -59,89 +70,95 @@ export default function DashboardAdminOverlay() {
               onSave={handleSaveTournament}
             />
           </motion.div>
-        )
+        ) : showTourRegistr ? (
+          <motion.div
+            key="registr-section"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+          >
+            <TourPageRegistrOverlay onClose={() => setShowTourRegistr(false)} />
+          </motion.div>
+        ) : showTourRunning ? (
+          <motion.div
+            key="running-section"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+          >
+            <TourPageRunningOverlay onClose={() => setShowTourRunning(false)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="dashboard-section"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="space-y-8 md:space-y-12 pt-6 md:pt-10 pb-16 md:pb-24 max-w-[1400px] mx-auto px-4 md:px-6"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4 md:gap-6">
+              <StatBox count="2" label="Drafts" color="bg-[#f0f9ff]" img="/draft-icon.png" />
+              <StatBox count={tournaments.length.toString()} label="Активні турніри" color="bg-[#f0f9ff]" img="/active-icon.png" />
+              <StatBox count="3" label="Архівні турніри" color="bg-[#f5f3ff]" img="/archive-icon.png" />
+            </div>
 
-          : showTourRegistr ? (
-            <motion.div
-              key="registr-section"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-            >
-              <TourPageRegistrOverlay onClose={() => setShowTourRegistr(false)} />
-            </motion.div>
-          )
+            <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative`}>
+              <h2 className="text-[24px] md:text-[32px] font-bold mb-6 md:mb-10">Drafts</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                <DraftCard name="Назва" rounds="1" />
+                <DraftCard name="Назва" rounds="3" />
+              </div>
+            </section>
 
-            : (
-              <motion.div
-                key="dashboard-section"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-8 md:space-y-12 pt-6 md:pt-10 pb-16 md:pb-24 max-w-[1400px] mx-auto px-4 md:px-6"
+            <div className="relative z-40">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-10 h-10 md:w-12 md:h-10 bg-[#5c75ff] rounded-xl flex items-center justify-center text-white shadow-lg"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4 md:gap-6">
-                  <StatBox count="2" label="Drafts" color="bg-[#f0f9ff]" img="/draft-icon.png" />
-                  <StatBox count={tournaments.length.toString()} label="Активні турніри" color="bg-[#f0f9ff]" img="/active-icon.png" />
-                  <StatBox count="3" label="Архівні турніри" color="bg-[#f5f3ff]" img="/archive-icon.png" />
-                </div>
-
-                <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative`}>
-                  <h2 className="text-[24px] md:text-[32px] font-bold mb-6 md:mb-10">Drafts</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <DraftCard name="Назва" rounds="1" />
-                    <DraftCard name="Назва" rounds="3" />
-                  </div>
-                </section>
-
-                <div className="relative z-40">
-                  <button
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="w-10 h-10 md:w-12 md:h-10 bg-[#5c75ff] rounded-xl flex items-center justify-center text-white shadow-lg"
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
+              </button>
+              <AnimatePresence>
+                {isFilterOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-12 left-0 w-[200px] md:w-[220px] bg-white rounded-2xl p-3 md:p-4 shadow-2xl border border-white z-50"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
-                  </button>
-                  <AnimatePresence>
-                    {isFilterOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                        className="absolute top-12 left-0 w-[200px] md:w-[220px] bg-white rounded-2xl p-3 md:p-4 shadow-2xl border border-white z-50"
-                      >
-                        {['Мої турніри', 'Registration open', 'Running', 'Finished'].map((f, i) => (
-                          <div key={f} className={`py-2 px-3 text-[13px] md:text-[14px] font-bold cursor-pointer rounded-lg hover:bg-[#5c75ff]/5 hover:text-[#5c75ff] ${i === 0 ? 'text-black' : 'text-slate-400'}`}>
-                            {f}
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                    {['Мої турніри', 'Registration open', 'Running', 'Finished'].map((f, i) => (
+                      <div key={f} className={`py-2 px-3 text-[13px] md:text-[14px] font-bold cursor-pointer rounded-lg hover:bg-[#5c75ff]/5 hover:text-[#5c75ff] ${i === 0 ? 'text-black' : 'text-slate-400'}`}>
+                        {f}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                <TournamentSection
-                  title="Мої турніри"
-                  items={tournaments}
-                  onAnnounce={(name: string) => { setSelectedTourName(name); setShowAnnouncement(true); }}
-                  onCreate={() => setShowCreateTour(true)}
-                  onDetails={(status: string) => handleOpenDetails(status)}
-                  showAddBtn={true}
-                />
+            <TournamentSection
+              title="Мої турніри"
+              items={tournaments}
+              onAnnounce={(name: string) => { setSelectedTourName(name); setShowAnnouncement(true); }}
+              onCreate={() => setShowCreateTour(true)}
+              onDetails={(status: string) => handleOpenDetails(status)}
+              showAddBtn={true}
+              whiteBtn={false}
+            />
 
-                <TournamentSection
-                  title="Активні турніри"
-                  items={[{ id: 99, name: "Назва турніру", status: "Running", color: "bg-[#4ade80]", date: "01.01.26 - 01.01.27", type: "active" }]}
-                  onAnnounce={(name: string) => { setSelectedTourName(name); setShowAnnouncement(true); }}
-                  onDetails={(status: string) => handleOpenDetails(status)}
-                />
+            <TournamentSection
+              title="Активні турніри"
+              items={[{ id: 99, name: "Назва турніру", status: "Running", color: "bg-[#4ade80]", date: "01.01.26 - 01.01.27", type: "active" }]}
+              onAnnounce={(name: string) => { setSelectedTourName(name); setShowAnnouncement(true); }}
+              onDetails={(status: string) => handleOpenDetails(status)}
+            />
 
-                <TournamentSection
-                  title="Архів"
-                  items={[{ id: 100, name: "Назва", status: "Finished", color: "bg-[#1e293b]", date: "01.01.25 - 01.01.25", type: "archive" }]}
-                  onAnnounce={() => { }}
-                  onDetails={(status: string) => handleOpenDetails(status)}
-                  isArchive={true}
-                />
-              </motion.div>
-            )}
+            <TournamentSection
+              title="Архів"
+              items={[{ id: 100, name: "Назва", status: "Finished", color: "bg-[#1e293b]", date: "01.01.25 - 01.01.25", type: "archive" }]}
+              onAnnounce={() => { }}
+              onDetails={(status: string) => handleOpenDetails(status)}
+              isArchive={true}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -153,6 +170,7 @@ export default function DashboardAdminOverlay() {
   );
 }
 
+// Вспомогательные компоненты (TournamentSection, TournamentRow, StatBox, DraftCard, AnnouncementOverlay) остаются без изменений
 function TournamentSection({ title, items, onAnnounce, onCreate, onDetails, showAddBtn, isArchive }: any) {
   return (
     <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative ${isArchive ? 'opacity-80' : ''}`}>
@@ -186,31 +204,92 @@ function TournamentRow({ name, status, color, date, onAnnounce, onDetails, isArc
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const close = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false); };
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  const renderMenuItems = () => {
+    const commonItems = (
+      <button
+        onClick={() => { onAnnounce(); setMenuOpen(false); }}
+        className="w-full text-left px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+      >
+        Надіслати оголошення
+      </button>
+    );
+
+    if (status === "Running") {
+      return (
+        <>
+          {commonItems}
+          <button className="w-full text-left px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            Розподілити журі
+          </button>
+          <button className="w-full text-left px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            Завершити оцінювання
+          </button>
+        </>
+      );
+    }
+
+    if (status === "Registration") {
+      return (
+        <>
+          {commonItems}
+          <button className="w-full text-left px-4 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            Завершити реєстрацію
+          </button>
+        </>
+      );
+    }
+
+    return commonItems;
+  };
+
   return (
-    <div className={`${Theme.card} p-5 md:p-9 flex flex-col lg:flex-row gap-4 lg:items-center justify-between transition-all`}>
+    <div className={`${Theme.card} p-5 md:p-9 flex flex-col lg:flex-row gap-4 lg:items-center justify-between transition-all relative`}>
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-3 md:gap-5">
           <h3 className="text-[20px] md:text-[26px] font-bold">{name}</h3>
-          <span className={`${color} text-white text-[9px] md:text-[10px] px-3 md:px-4 py-1 rounded-full font-black uppercase tracking-wider`}>{status}</span>
+          <span className={`${color} text-white text-[9px] md:text-[10px] px-3 md:px-4 py-1 rounded-full font-black uppercase tracking-wider`}>
+            {status}
+          </span>
         </div>
         <p className="text-slate-400 text-[13px] md:text-[14px] font-medium">{date} • N команд</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 md:gap-5" ref={menuRef}>
+      <div className="flex flex-wrap items-center gap-3 md:gap-5">
         <button
           onClick={onDetails}
           className={`${Theme.btnWhite} px-5 md:px-10 py-2.5 md:py-3.5 rounded-[16px] md:rounded-[20px] font-bold text-[13px] md:text-[14px]`}
         >
           Детальніше
         </button>
-        <button className={`${Theme.btnBlue} px-5 md:px-10 py-2.5 md:py-3.5 rounded-[16px] md:rounded-[20px] font-bold text-[13px] md:text-[14px]`}>
-          {isArchive ? "Leaderboard" : "Редагувати"}
-        </button>
+
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-black hover:bg-slate-100 rounded-full transition-all"
+          >
+            <MoreIcon />
+          </button>
+
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, x: 10 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95, x: 10 }}
+                className="absolute right-0 top-0 mt-0 mr-12 w-[200px] bg-white rounded-[12px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] border border-slate-100 py-2 z-[100]"
+              >
+                {renderMenuItems()}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

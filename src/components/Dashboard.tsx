@@ -1,14 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import TeamRegOverlay, { RegistrationHeader } from "./Overlay/teamRegOverlay";
-import TourStatOverlay from "./Overlay/tourStatOverlay";
-import TourViewOverlay from "./Overlay/tourViewOverlay";
-import ProfileUserOverlay from "./Overlay/ProfileUserOverlay";
-import DashboardUserOverlay from "./Overlay/DashboardUserOverlay";
-import DashboardAdminOverlay from "./Overlay/DashboardAdminOverlay";
-import LeaderboardOverlay from "./Overlay/LeaderboardOverlay";
+import TeamRegOverlay, { RegistrationHeader } from "./Overlay/User/teamRegOverlay";
+import TourStatOverlay from "./Overlay/User/tourStatOverlay";
+import TourViewOverlay from "./Overlay/User/tourViewOverlay";
+import ProfileUserOverlay from "./Overlay/User/ProfileUserOverlay";
+import DashboardUserOverlay from "./Overlay/User/DashboardUserOverlay";
+import DashboardAdminOverlay from "./Overlay/Admin/DashboardAdminOverlay";
+import LeaderboardOverlay from "./Overlay/User/LeaderboardOverlay";
 
 const CURRENT_USER_ROLE: 'Admin' | 'User' = 'Admin';
+
+const MoreIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+    </svg>
+);
 
 const RobotoFont = () => (
     <style dangerouslySetInnerHTML={{
@@ -17,6 +23,9 @@ const RobotoFont = () => (
         .font-roboto { font-family: 'Roboto', sans-serif; }
         html { overflow-y: scroll; height: 100%; }
         body { min-height: 100%; margin: 0; padding: 0; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     `}} />
 );
 
@@ -28,7 +37,7 @@ const BellIcon = () => (
 );
 
 const AnnouncementIcon = () => (
-    <img src="/Alert.png" alt="" />
+    <img src="/Alert.png" alt="" className="w-5 h-5 object-contain" />
 );
 
 const MenuIcon = () => (
@@ -108,23 +117,27 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute right-0 mt-4 w-[320px] bg-white rounded-[20px] shadow-2xl border border-black/5 overflow-hidden z-[70]"
+                                    className="absolute right-0 mt-4 w-[320px] md:w-[380px] bg-white rounded-[24px] shadow-2xl border border-black/5 overflow-hidden z-[70]"
                                 >
-                                    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                                        <div className="flex items-center gap-2 text-[#1e293b]">
-                                            <AnnouncementIcon />
-                                            <span className="font-bold text-[16px]">Оголошення</span>
+                                    <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
+                                        <div className="flex items-center gap-2.5 text-[#1e293b]">
+                                            <div className="w-8 h-8 rounded-full bg-[#f8fafc] flex items-center justify-center">
+                                                <AnnouncementIcon />
+                                            </div>
+                                            <span className="font-bold text-[17px] tracking-tight">Оголошення</span>
                                         </div>
-                                        <button onClick={() => setIsNotifOpen(false)} className="hover:opacity-60 transition-opacity">
-                                            <CloseIcon size={20} />
+                                        <button onClick={() => setIsNotifOpen(false)} className="p-1.5 hover:bg-slate-50 rounded-full transition-colors">
+                                            <CloseIcon size={18} />
                                         </button>
                                     </div>
-                                    <div className="max-h-[400px] overflow-y-auto">
-                                        <div className="px-5 py-4 relative hover:bg-gray-50 transition-colors cursor-pointer group">
-                                            <div className="absolute left-2 top-6 w-1.5 h-1.5 bg-[#5c75ff] rounded-full" />
-                                            <h4 className="font-bold text-[15px] text-[#1e293b] mb-1">Заголовок</h4>
-                                            <p className="text-[14px] text-slate-600 leading-snug mb-2">Текст уведомления.</p>
-                                            <span className="text-[12px] text-slate-400">Щойно</span>
+                                    <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2">
+                                        <div className="px-4 py-4 relative hover:bg-slate-50/80 rounded-2xl transition-all cursor-pointer group">
+                                            <div className="flex justify-between items-start mb-1.5">
+                                                <h4 className="font-bold text-[15px] text-[#1e293b] group-hover:text-[#5c75ff] transition-colors">Оновлення системи</h4>
+                                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Щойно</span>
+                                            </div>
+                                            <p className="text-[14px] text-slate-500 leading-relaxed pr-2">Турнірна сітка була оновлена. Перевірте свій розклад.</p>
+                                            <div className="mt-3 w-1.5 h-1.5 bg-[#5c75ff] rounded-full" />
                                         </div>
                                     </div>
                                 </motion.div>
@@ -151,27 +164,17 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] lg:hidden" />
                         <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed top-0 left-0 bottom-0 w-64 bg-white z-[58] p-8 pt-24 shadow-2xl lg:hidden">
                             <nav className="flex flex-col h-full gap-6 uppercase text-sm font-bold text-[#1e293b]">
-                                {CURRENT_USER_ROLE === 'Admin' ? (
+                                <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
+                                <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
+                                {CURRENT_USER_ROLE === 'Admin' && (
                                     <>
                                         <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Leaderboard</button>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
                                         <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Архів</button>
                                     </>
-                                ) : (
-                                    <>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
-                                    </>
                                 )}
-
-                                {CURRENT_USER_ROLE !== 'Admin' && (
-                                    <div className="mt-auto pb-10">
-                                        <button className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left">
-                                            Вихід
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="mt-auto pb-10">
+                                    <button className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left font-bold">Вихід</button>
+                                </div>
                             </nav>
                         </motion.div>
                     </>
