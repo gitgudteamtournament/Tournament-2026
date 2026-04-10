@@ -17,7 +17,6 @@ const Theme = {
 export default function AddJuryOverlay({ onClose, onAdd }: AddJuryProps) {
     return (
         <div className={Theme.overlay}>
-            {/* Фон-заглушка для закрытия */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -26,7 +25,6 @@ export default function AddJuryOverlay({ onClose, onAdd }: AddJuryProps) {
                 className="absolute inset-0"
             />
 
-            {/* Окно модалки */}
             <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}

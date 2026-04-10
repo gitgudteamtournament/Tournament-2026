@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CreateTourOverlay from "./CreateTourOverlay";
 import TourPageRegistrOverlay from "./TourPageRegistrOverlay";
-import TourPageRunningOverlay from "./TourPageRunningOverlay"; // Импортируем новый компонент
+import TourPageRunningOverlay from "./TourPageRunningOverlay";
 
 const Theme = {
   glass: "bg-white/40 backdrop-blur-[20px] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.04)]",
@@ -12,7 +12,6 @@ const Theme = {
   input: "w-full bg-white border border-slate-200 rounded-[18px] px-4 md:px-6 py-3 md:py-4 outline-none focus:border-[#5c75ff] transition-all text-[14px] md:text-[15px]"
 };
 
-// Иконка трех точек
 const MoreIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
@@ -22,7 +21,7 @@ const MoreIcon = () => (
 export default function DashboardAdminOverlay() {
   const [showCreateTour, setShowCreateTour] = useState(false);
   const [showTourRegistr, setShowTourRegistr] = useState(false);
-  const [showTourRunning, setShowTourRunning] = useState(false); // Состояние для Running оверлея
+  const [showTourRunning, setShowTourRunning] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [selectedTourName, setSelectedTourName] = useState("");
@@ -48,7 +47,7 @@ export default function DashboardAdminOverlay() {
     if (status === "Registration") {
       setShowTourRegistr(true);
     } else if (status === "Running") {
-      setShowTourRunning(true); // Открываем оверлей для запущенных турниров
+      setShowTourRunning(true);
     } else {
       console.log("Open other details");
     }
@@ -170,7 +169,6 @@ export default function DashboardAdminOverlay() {
   );
 }
 
-// Вспомогательные компоненты (TournamentSection, TournamentRow, StatBox, DraftCard, AnnouncementOverlay) остаются без изменений
 function TournamentSection({ title, items, onAnnounce, onCreate, onDetails, showAddBtn, isArchive }: any) {
   return (
     <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative ${isArchive ? 'opacity-80' : ''}`}>

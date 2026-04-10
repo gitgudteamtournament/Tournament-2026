@@ -18,7 +18,6 @@ const Theme = {
     plusBtn: "w-10 h-10 bg-[#5c75ff] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform text-white border-none cursor-pointer",
 };
 
-// --- Icons ---
 const CalendarIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 pointer-events-none"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
 );
@@ -30,14 +29,12 @@ const TrashIcon = () => (
 );
 
 export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps) {
-    // Основні поля
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [techStack, setTechStack] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // Списки
     const [mustHaves, setMustHaves] = useState([{ id: Date.now(), value: "" }]);
     const [files, setFiles] = useState<{ id: number; name: string; type: string; url?: string }[]>([]);
 
@@ -46,7 +43,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
         return () => { document.body.style.overflow = 'unset'; };
     }, []);
 
-    // Обробники для Must Have
     const addMustHave = () => setMustHaves([...mustHaves, { id: Date.now(), value: "" }]);
     const updateMustHave = (id: number, val: string) => {
         setMustHaves(mustHaves.map(item => item.id === id ? { ...item, value: val } : item));
@@ -55,7 +51,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
         if (mustHaves.length > 1) setMustHaves(mustHaves.filter(item => item.id !== id));
     };
 
-    // Обробники для матеріалів
     const addLink = () => {
         const url = prompt("Введіть посилання:");
         if (url) setFiles([...files, { id: Date.now(), name: url, type: "Посилання", url }]);
@@ -83,7 +78,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                 initial={{ opacity: 0, scale: 0.95, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
             >
-                {/* Header */}
                 <div className="flex items-center gap-3 mb-8">
                     <button onClick={onClose} className="text-slate-400 hover:text-[#5c75ff] transition-colors flex items-center gap-2 font-bold text-[12px] uppercase tracking-wider border-none bg-transparent cursor-pointer">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
@@ -95,7 +89,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                 <h1 className="text-[32px] font-black text-[#1e293b] mb-10">Створення раунду</h1>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Left Column */}
                     <div className="flex-1">
                         <div className={Theme.sectionCard}>
                             <h2 className="text-[22px] font-black text-[#1e293b] mb-8">Основна інформація</h2>
@@ -146,7 +139,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                                     </div>
                                 </div>
 
-                                {/* Materials */}
                                 <div>
                                     <label className={Theme.label}>Додаткові матеріали</label>
                                     <div className="flex gap-3 mb-6">
@@ -182,7 +174,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                         </div>
                     </div>
 
-                    {/* Right Column */}
                     <div className="w-full lg:w-[320px] space-y-6">
                         <div className="bg-white/50 p-6 rounded-[32px] border border-white/60 shadow-sm">
                             <label className={Theme.label}>Дата та час старту</label>
@@ -212,7 +203,6 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12 pt-10 border-t border-white/30">
                     <button onClick={handleCreate} className={Theme.btnPrimary}>Створити</button>
                     <button onClick={onClose} className={Theme.btnSecondary}>Скасувати</button>

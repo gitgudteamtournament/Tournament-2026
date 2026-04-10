@@ -7,7 +7,6 @@ interface CreateTourProps {
 }
 
 const Theme = {
-  // Добавил max-h и overflow-y-auto, чтобы окно не улетало вниз
   card: "bg-white/30 backdrop-blur-3xl rounded-[40px] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 w-full max-w-[1100px] max-h-[90vh] overflow-y-auto relative custom-scrollbar",
   section: "bg-white/40 p-6 rounded-[28px] border border-white/60 mb-6 shadow-sm",
   label: "text-[14px] font-bold mb-3 block text-[#1e293b]",
@@ -39,7 +38,6 @@ export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) 
     hasMaxTeams: false
   });
 
-  // Блокируем скролл основной страницы при открытом оверлее
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'unset'; };
@@ -61,7 +59,6 @@ export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) 
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
       >
         {!isPreview ? (
-          /* --- ШАГ 1: СОЗДАНИЕ --- */
           <div className="animate-in fade-in duration-300">
             <h1 className="text-[32px] md:text-[36px] font-bold text-[#1e293b] mb-10">Створення турніру</h1>
 
@@ -154,7 +151,6 @@ export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) 
             </div>
           </div>
         ) : (
-          /* --- ШАГ 2: ПРЕДПРОСМОТР --- */
           <div className="animate-in slide-in-from-right-4 duration-400">
             <button
               onClick={() => setIsPreview(false)}

@@ -15,7 +15,7 @@ export default function TourStatOverlay({ onRegister, onLeaderboardClick }: Tour
     >
       <div className="rounded-[30px] bg-[#FFFFFF26] backdrop-blur-[35px] border border-white/40 p-8 md:p-12 shadow-sm">
         <div className="flex flex-col lg:flex-row justify-between gap-8">
-          
+
           <div className="flex-1">
             <h2 className="text-[32px] md:text-[48px] font-bold mb-4 text-[#0f172a]">Назва</h2>
             <p className="text-[16px] md:text-[18px] text-[#1e293b]/70 font-medium mb-10">
@@ -36,7 +36,7 @@ export default function TourStatOverlay({ onRegister, onLeaderboardClick }: Tour
               <p className="text-[10px] font-bold text-[#1e293b]/50 uppercase tracking-widest">Статус</p>
               <p className="text-[16px] font-bold text-[#1e293b]">Активний</p>
             </div>
-            
+
             <div className="bg-white/40 border border-white/60 rounded-[20px] p-5 shadow-sm min-h-[80px]">
               <p className="text-[10px] font-bold text-[#1e293b]/50 uppercase tracking-widest">Тривалість</p>
               <p className="text-[16px] font-bold text-[#1e293b]">10 днів</p>

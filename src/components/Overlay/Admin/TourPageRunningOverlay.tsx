@@ -4,6 +4,7 @@ import AddJuryOverlay from "../modals/AddJuryOverlay";
 import ConfirmDeleteTeamOverlay from "../modals/ConfirmDeleteTeamOverlay";
 import CreateRoundOverlay from "./CreateRoundOverlay";
 import RateOverlay from "./RateOverlay";
+import TourProperty from "./TourProperty";
 
 interface RunningTourProps {
     onClose: () => void;
@@ -22,6 +23,7 @@ const Theme = {
 export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
     const [isAddJuryOpen, setIsAddJuryOpen] = useState(false);
     const [isCreateRoundOpen, setIsCreateRoundOpen] = useState(false);
+    const [isPropertyOpen, setIsPropertyOpen] = useState(false);
     const [selectedRound, setSelectedRound] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: any; name: string; type: 'jury' | 'team' } | null>(null);
 
@@ -29,6 +31,11 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
         document.body.style.overflow = 'hidden';
         return () => { document.body.style.overflow = 'unset'; };
     }, []);
+
+    const handleOpenDetails = (roundName: string) => {
+        setSelectedRound(roundName);
+        setIsPropertyOpen(true);
+    };
 
     return (
         <div className={Theme.overlay}>
@@ -76,7 +83,7 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                                 key={r}
                                 number={r}
                                 isActive={r === 1}
-                                onDetails={() => setSelectedRound(`Назва раунду ${r}`)}
+                                onDetails={() => handleOpenDetails(`Раунд ${r}: Назва`)}
                             />
                         ))}
                     </div>
@@ -149,10 +156,10 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
             </motion.div>
 
             <AnimatePresence>
-                {selectedRound && (
-                    <RateOverlay
-                        roundName={selectedRound}
-                        onClose={() => setSelectedRound(null)}
+                {isPropertyOpen && (
+                    <TourProperty
+                        roundTitle={selectedRound || ""}
+                        onClose={() => setIsPropertyOpen(false)}
                     />
                 )}
 
