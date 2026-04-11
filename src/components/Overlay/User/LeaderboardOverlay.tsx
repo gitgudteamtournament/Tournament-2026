@@ -125,6 +125,24 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
   const [isDetailed, setIsDetailed] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
 
+  const handleExport = () => {
+    const headers = ["Rank", "Team Name", "Cat 1", "Cat 2", "Cat 3", "Total"];
+    const csvContent = [
+      headers.join(","),
+      ...leaderboardData.map(t => `${t.rank},"${t.name}",${t.cat1},${t.cat2},${t.cat3},${t.total}`)
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "leaderboard.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const getRankColor = (rank: number) => {
     if (rank === 1) return "#F6D84A";
     if (rank === 2) return "#A9B8C4";
@@ -133,7 +151,7 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="mt-8 space-y-6 px-2 md:px-0">
+    <div className="space-y-6 px-2 md:px-0">
       <motion.div
         layout
         className="rounded-[24px] border border-white/70 bg-white/40 p-6 shadow-lg backdrop-blur-xl"
@@ -152,13 +170,25 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5c75ff]">
-              <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                <path d="M1 5L4 8L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-[12px] font-bold text-[#5c75ff] shadow-sm hover:bg-white transition-colors border border-white/50"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
               </svg>
+              Експортувати таблицю
+            </button>
+
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#34d399]">
+                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                  <path d="M1 5L4 8L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <span className="text-[14px] font-bold text-[#34d399]">Оцінювання завершено</span>
             </div>
-            <span className="text-[14px] font-bold text-[#34d399]">Оцінювання завершено</span>
           </div>
         </div>
       </motion.div>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MainInfo from "./InformationOverlay/MainInfo";
 import RateOverlay from "./InformationOverlay/RateOverlay";
 import CertificateOverlay from "./InformationOverlay/CertificateOverlay";
+import Leaderboard from "../User/LeaderboardOverlay";
 
 interface TourPropertyProps {
     onClose: () => void;
@@ -84,12 +85,7 @@ export default function TourProperty({ onClose, roundTitle }: TourPropertyProps)
                             {activeTab === "main" && <MainInfo />}
                             {activeTab === "scoring" && <RateOverlay />}
                             {activeTab === "certificate" && <CertificateOverlay />}
-
-                            {activeTab === "leaderboard" && (
-                                <div className="p-10 text-center text-slate-300 font-black uppercase tracking-widest">
-                                    Таблиця лідерів (Coming Soon)
-                                </div>
-                            )}
+                            {activeTab === "leaderboard" && <Leaderboard onBack={onClose} />}
                         </motion.div>
                     </AnimatePresence>
                 </main>
