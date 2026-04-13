@@ -126,13 +126,16 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
   const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
 
   const handleExport = () => {
+    // Используем украинские заголовки
     const headers = ["Місце", "Команда", "Категорія 1", "Категорія 2", "Категорія 3", "Сума балів"];
 
+    // Используем точку с запятой (;) для правильного разделения по ячейкам в Excel
     const csvContent = [
       headers.join(";"),
       ...leaderboardData.map(t => `${t.rank};"${t.name}";"${t.cat1}";"${t.cat2}";"${t.cat3}";${t.total}`)
     ].join("\n");
 
+    // Добавляем \uFEFF (BOM) чтобы кириллица читалась корректно
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
