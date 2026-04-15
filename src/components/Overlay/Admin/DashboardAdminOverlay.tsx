@@ -1,8 +1,27 @@
 import { useState, useRef, useEffect } from "react";
+import type { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import CreateTourOverlay from "./CreateTourOverlay";
 import TourPageRegistrOverlay from "./TourPageRegistrOverlay";
 import TourPageRunningOverlay from "./TourPageRunningOverlay";
+import ArchiveTournamentPage from "./ArchiveTournamentPage";
+
+interface Tournament {
+  id: number;
+  name: string;
+  status: "Registration" | "Running" | "Finished";
+  color: string;
+  date: string;
+  type: string;
+}
+
+interface StatBoxProps {
+  count: string | number;
+  label: string;
+  color: string;
+  icon: ReactNode;
+}
 
 const Theme = {
   glass: "bg-white/40 backdrop-blur-[20px] border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.04)]",
@@ -22,11 +41,13 @@ export default function DashboardAdminOverlay() {
   const [showCreateTour, setShowCreateTour] = useState(false);
   const [showTourRegistr, setShowTourRegistr] = useState(false);
   const [showTourRunning, setShowTourRunning] = useState(false);
+  const [showTourArchive, setShowTourArchive] = useState(false);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [selectedTourName, setSelectedTourName] = useState("");
 
-  const [tournaments, setTournaments] = useState([
+  const [tournaments, setTournaments] = useState<Tournament[]>([
     { id: 1, name: "Назва", status: "Running", color: "bg-[#4ade80]", date: "01.01.26 - 01.01.27", type: "active" },
     { id: 2, name: "Назва", status: "Registration", color: "bg-[#5c75ff]", date: "01.01.26 - 01.01.27", type: "registration" }
   ]);
@@ -48,8 +69,8 @@ export default function DashboardAdminOverlay() {
       setShowTourRegistr(true);
     } else if (status === "Running") {
       setShowTourRunning(true);
-    } else {
-      console.log("Open other details");
+    } else if (status === "Finished") {
+      setShowTourArchive(true);
     }
   };
 
@@ -59,46 +80,57 @@ export default function DashboardAdminOverlay() {
         {showCreateTour ? (
           <motion.div
             key="create-section"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
             className="pt-6 md:pt-10 pb-16 md:pb-24 max-w-[1400px] mx-auto px-4 md:px-6"
           >
-            <CreateTourOverlay
-              onClose={() => setShowCreateTour(false)}
-              onSave={handleSaveTournament}
-            />
+            <CreateTourOverlay onClose={() => setShowCreateTour(false)} onSave={handleSaveTournament} />
           </motion.div>
         ) : showTourRegistr ? (
           <motion.div
             key="registr-section"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
+            initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
           >
             <TourPageRegistrOverlay onClose={() => setShowTourRegistr(false)} />
           </motion.div>
         ) : showTourRunning ? (
           <motion.div
             key="running-section"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
+            initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
           >
             <TourPageRunningOverlay onClose={() => setShowTourRunning(false)} />
+          </motion.div>
+        ) : showTourArchive ? (
+          <motion.div
+            key="archive-section"
+            initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
+          >
+            <ArchiveTournamentPage onBack={() => setShowTourArchive(false)} />
           </motion.div>
         ) : (
           <motion.div
             key="dashboard-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
             className="space-y-8 md:space-y-12 pt-6 md:pt-10 pb-16 md:pb-24 max-w-[1400px] mx-auto px-4 md:px-6"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-4 md:gap-6">
-              <StatBox count="2" label="Drafts" color="bg-[#f0f9ff]" img="/draft-icon.png" />
-              <StatBox count={tournaments.length.toString()} label="Активні турніри" color="bg-[#f0f9ff]" img="/active-icon.png" />
-              <StatBox count="3" label="Архівні турніри" color="bg-[#f5f3ff]" img="/archive-icon.png" />
+              <StatBox
+                count="2"
+                label="Drafts"
+                color="bg-[#f0f9ff]"
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" className="w-5 h-5 md:w-6 md:h-6"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
+              />
+              <StatBox
+                count={tournaments.length.toString()}
+                label="Активні турніри"
+                color="bg-[#f0fdf4]"
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" className="w-5 h-5 md:w-6 md:h-6"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>}
+              />
+              <StatBox
+                count="3"
+                label="Архівні турніри"
+                color="bg-[#f5f3ff]"
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" className="w-5 h-5 md:w-6 md:h-6"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>}
+              />
             </div>
 
             <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative`}>
@@ -112,7 +144,7 @@ export default function DashboardAdminOverlay() {
             <div className="relative z-40">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="w-10 h-10 md:w-12 md:h-10 bg-[#5c75ff] rounded-xl flex items-center justify-center text-white shadow-lg"
+                className="w-10 h-10 md:w-12 md:h-10 bg-[#5c75ff] rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-95"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
               </button>
@@ -120,10 +152,10 @@ export default function DashboardAdminOverlay() {
                 {isFilterOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-12 left-0 w-[200px] md:w-[220px] bg-white rounded-2xl p-3 md:p-4 shadow-2xl border border-white z-50"
+                    className="absolute top-12 left-0 w-[200px] md:w-[220px] bg-white rounded-2xl p-3 md:p-4 shadow-2xl border border-slate-100 z-50"
                   >
                     {['Мої турніри', 'Registration open', 'Running', 'Finished'].map((f, i) => (
-                      <div key={f} className={`py-2 px-3 text-[13px] md:text-[14px] font-bold cursor-pointer rounded-lg hover:bg-[#5c75ff]/5 hover:text-[#5c75ff] ${i === 0 ? 'text-black' : 'text-slate-400'}`}>
+                      <div key={f} onClick={() => setIsFilterOpen(false)} className={`py-2 px-3 text-[13px] md:text-[14px] font-bold cursor-pointer rounded-lg hover:bg-[#5c75ff]/5 hover:text-[#5c75ff] ${i === 0 ? 'text-black' : 'text-slate-400'}`}>
                         {f}
                       </div>
                     ))}
@@ -139,7 +171,6 @@ export default function DashboardAdminOverlay() {
               onCreate={() => setShowCreateTour(true)}
               onDetails={(status: string) => handleOpenDetails(status)}
               showAddBtn={true}
-              whiteBtn={false}
             />
 
             <TournamentSection
@@ -174,13 +205,12 @@ function TournamentSection({ title, items, onAnnounce, onCreate, onDetails, show
     <section className={`${Theme.glass} rounded-[30px] md:rounded-[45px] p-6 md:p-12 relative ${isArchive ? 'opacity-80' : ''}`}>
       <h2 className="text-[24px] md:text-[34px] font-bold mb-6 md:mb-10">{title}</h2>
       <div className="space-y-4 md:space-y-6">
-        {items.map((tour: any) => (
+        {items.map((tour: Tournament) => (
           <TournamentRow
             key={tour.id}
             {...tour}
             onAnnounce={() => onAnnounce(tour.name)}
             onDetails={() => onDetails(tour.status)}
-            isArchive={isArchive}
           />
         ))}
       </div>
@@ -197,7 +227,7 @@ function TournamentSection({ title, items, onAnnounce, onCreate, onDetails, show
   );
 }
 
-function TournamentRow({ name, status, color, date, onAnnounce, onDetails, isArchive }: any) {
+function TournamentRow({ name, status, color, date, onAnnounce, onDetails }: any) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -281,7 +311,7 @@ function TournamentRow({ name, status, color, date, onAnnounce, onDetails, isArc
                 initial={{ opacity: 0, scale: 0.95, x: 10 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95, x: 10 }}
-                className="absolute right-0 top-0 mt-0 mr-12 w-[200px] bg-white rounded-[12px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] border border-slate-100 py-2 z-[100]"
+                className="absolute right-0 top-12 mt-2 w-[200px] bg-white rounded-[12px] shadow-[0_10px_30px_rgba(0,0,0,0.1)] border border-slate-100 py-2 z-[100]"
               >
                 {renderMenuItems()}
               </motion.div>
@@ -293,10 +323,12 @@ function TournamentRow({ name, status, color, date, onAnnounce, onDetails, isArc
   );
 }
 
-function StatBox({ count, label, color, img }: any) {
+function StatBox({ count, label, color, icon }: StatBoxProps) {
   return (
     <div className={`${color} px-5 md:px-8 py-4 md:py-5 rounded-[20px] md:rounded-[28px] flex items-center gap-4 md:gap-5 min-w-[unset] sm:min-w-[220px] border border-white/50`}>
-      <div className="bg-white p-2 md:p-3 rounded-xl shadow-inner"><img src={img} className="w-5 h-5 md:w-6 md:h-6 object-contain" /></div>
+      <div className="bg-white p-2 md:p-3 rounded-xl shadow-inner flex items-center justify-center">
+        {icon}
+      </div>
       <div>
         <div className="text-[20px] md:text-[26px] font-black leading-none">{count}</div>
         <div className="text-[12px] md:text-[14px] font-bold text-slate-500 mt-1">{label}</div>
@@ -305,7 +337,7 @@ function StatBox({ count, label, color, img }: any) {
   );
 }
 
-function DraftCard({ name, rounds }: any) {
+function DraftCard({ name, rounds }: { name: string, rounds: string }) {
   return (
     <div className={`${Theme.card} p-6 md:p-10 transition-transform hover:scale-[1.01]`}>
       <h3 className="text-[22px] md:text-[28px] font-bold mb-4 md:mb-6">{name}</h3>
@@ -324,19 +356,20 @@ function DraftCard({ name, rounds }: any) {
 
 function AnnouncementOverlay({ tourName, onClose }: { tourName: string, onClose: () => void }) {
   const [target, setTarget] = useState<'all' | 'judges'>('all');
+
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/20 backdrop-blur-md" />
       <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-white w-full max-w-[680px] rounded-[24px] md:rounded-[32px] shadow-2xl p-6 md:p-12 space-y-6 md:space-y-8 z-10" >
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-[18px] md:text-[24px] font-bold">Оголошення: {tourName}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full">
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         </div>
         <div className="space-y-4 md:space-y-6">
           <input type="text" className={Theme.input} placeholder="Заголовок..." />
-          <textarea className={`${Theme.input} min-h-[120px] md:min-h-[160px]`} placeholder="Повідомлення..." />
+          <textarea className={`${Theme.input} min-h-[120px] md:min-h-[160px] resize-y`} placeholder="Повідомлення..." />
           <div className="flex gap-6">
             {(['all', 'judges'] as const).map((t) => (
               <label key={t} className="flex items-center gap-2 cursor-pointer group">
@@ -348,7 +381,7 @@ function AnnouncementOverlay({ tourName, onClose }: { tourName: string, onClose:
         </div>
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <button onClick={onClose} className="flex-1 py-3 md:py-4 bg-[#f1f5f9] text-slate-500 font-bold rounded-[16px] md:rounded-[20px] hover:bg-slate-200 transition-colors">Скасувати</button>
-          <button className="flex-1 py-3 md:py-4 bg-[#5c75ff] text-white font-bold rounded-[16px] md:rounded-[20px]">Надіслати</button>
+          <button className="flex-1 py-3 md:py-4 bg-[#5c75ff] text-white font-bold rounded-[16px] md:rounded-[20px] shadow-[0_10px_20px_rgba(92,117,255,0.3)] hover:brightness-110 active:scale-95 transition-all">Надіслати</button>
         </div>
       </motion.div>
     </div>

@@ -6,15 +6,11 @@ import TourViewOverlay from "./Overlay/User/tourViewOverlay";
 import ProfileUserOverlay from "./Overlay/User/ProfileUserOverlay";
 import DashboardUserOverlay from "./Overlay/User/DashboardUserOverlay";
 import DashboardAdminOverlay from "./Overlay/Admin/DashboardAdminOverlay";
+import DashboardJuriOverlay from "./Overlay/Juri/JuriDashboard";
 import LeaderboardOverlay from "./Overlay/User/LeaderboardOverlay";
 
-const CURRENT_USER_ROLE: 'Admin' | 'User' = 'Admin';
-
-const MoreIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
-    </svg>
-);
+type UserRole = 'Admin' | 'User' | 'Juri';
+const CURRENT_USER_ROLE: UserRole = 'Juri';
 
 const RobotoFont = () => (
     <style dangerouslySetInnerHTML={{
@@ -67,6 +63,37 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isNotifOpen]);
 
+    const handleLogout = () => {
+        console.log("Logout triggered");
+    };
+
+    const NavLinks = () => {
+        if (CURRENT_USER_ROLE === 'Admin') {
+            return (
+                <>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Leaderboard</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Архів</button>
+                </>
+            );
+        }
+        if (CURRENT_USER_ROLE === 'Juri') {
+            return (
+                <>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Призначені турніри</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Статистика</button>
+                </>
+            );
+        }
+        return (
+            <>
+                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
+                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
+            </>
+        );
+    };
+
     return (
         <>
             <motion.header
@@ -83,20 +110,8 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     </button>
                 </div>
 
-                <nav className="hidden lg:flex gap-8 uppercase text-[13px] font-bold text-[#1e293b]">
-                    {CURRENT_USER_ROLE === 'Admin' ? (
-                        <>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Leaderboard</button>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Архів</button>
-                        </>
-                    ) : (
-                        <>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Мої турніри</button>
-                            <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors">Турніри</button>
-                        </>
-                    )}
+                <nav className="hidden lg:flex gap-8 uppercase text-[13px] font-bold text-[#0f172a]">
+                    <NavLinks />
                 </nav>
 
                 <div className="flex items-center gap-3 md:gap-5">
@@ -121,23 +136,18 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                                 >
                                     <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
                                         <div className="flex items-center gap-2.5 text-[#1e293b]">
-                                            <div className="w-8 h-8 rounded-full bg-[#f8fafc] flex items-center justify-center">
-                                                <AnnouncementIcon />
-                                            </div>
-                                            <span className="font-bold text-[17px] tracking-tight">Оголошення</span>
+                                            <div className="w-8 h-8 rounded-full bg-[#f8fafc] flex items-center justify-center"><AnnouncementIcon /></div>
+                                            <span className="font-bold text-[17px]">Оголошення</span>
                                         </div>
-                                        <button onClick={() => setIsNotifOpen(false)} className="p-1.5 hover:bg-slate-50 rounded-full transition-colors">
-                                            <CloseIcon size={18} />
-                                        </button>
+                                        <button onClick={() => setIsNotifOpen(false)}><CloseIcon size={18} /></button>
                                     </div>
-                                    <div className="max-h-[420px] overflow-y-auto custom-scrollbar p-2">
-                                        <div className="px-4 py-4 relative hover:bg-slate-50/80 rounded-2xl transition-all cursor-pointer group">
+                                    <div className="max-h-[420px] overflow-y-auto p-2">
+                                        <div className="px-4 py-4 hover:bg-slate-50/80 rounded-2xl transition-all cursor-pointer group">
                                             <div className="flex justify-between items-start mb-1.5">
-                                                <h4 className="font-bold text-[15px] text-[#1e293b] group-hover:text-[#5c75ff] transition-colors">Оновлення системи</h4>
-                                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Щойно</span>
+                                                <h4 className="font-bold text-[15px] text-[#1e293b] group-hover:text-[#5c75ff]">Оновлення системи</h4>
+                                                <span className="text-[11px] font-bold text-slate-400 uppercase">Щойно</span>
                                             </div>
-                                            <p className="text-[14px] text-slate-500 leading-relaxed pr-2">Турнірна сітка була оновлена. Перевірте свій розклад.</p>
-                                            <div className="mt-3 w-1.5 h-1.5 bg-[#5c75ff] rounded-full" />
+                                            <p className="text-[14px] text-slate-500">Турнірна сітка оновлена.</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -146,12 +156,15 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     </div>
 
                     <button onClick={onProfileClick} className="flex items-center gap-3 group">
-                        <span className="hidden sm:block text-[14px] font-bold text-[#1e293b] group-hover:text-[#5c75ff] transition-colors">Ім'я</span>
-                        <div className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5c75ff]/30 group-hover:brightness-110 transition-all">І</div>
+                        <span className="hidden sm:block text-[14px] font-bold text-[#1e293b] group-hover:text-[#5c75ff]">Ім'я</span>
+                        <div className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5c75ff]/30">І</div>
                     </button>
 
-                    {CURRENT_USER_ROLE !== 'Admin' && (
-                        <button className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all shadow-md active:scale-95">
+                    {CURRENT_USER_ROLE === 'User' && (
+                        <button
+                            onClick={handleLogout}
+                            className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all shadow-md active:scale-95"
+                        >
                             Вихід
                         </button>
                     )}
@@ -163,18 +176,13 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMenuOpen(false)} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] lg:hidden" />
                         <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed top-0 left-0 bottom-0 w-64 bg-white z-[58] p-8 pt-24 shadow-2xl lg:hidden">
-                            <nav className="flex flex-col h-full gap-6 uppercase text-sm font-bold text-[#1e293b]">
-                                <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Турніри</button>
-                                <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Мої турніри</button>
-                                {CURRENT_USER_ROLE === 'Admin' && (
-                                    <>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Leaderboard</button>
-                                        <button className="text-left" onClick={() => { onHome(); setIsMenuOpen(false); }}>Архів</button>
-                                    </>
+                            <nav className="flex flex-col h-full gap-6 uppercase text-sm font-bold text-[#0f172a]">
+                                <NavLinks />
+                                {CURRENT_USER_ROLE === 'User' && (
+                                    <div className="mt-auto pb-10">
+                                        <button onClick={handleLogout} className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left font-bold">Вихід</button>
+                                    </div>
                                 )}
-                                <div className="mt-auto pb-10">
-                                    <button className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left font-bold">Вихід</button>
-                                </div>
                             </nav>
                         </motion.div>
                     </>
@@ -189,6 +197,20 @@ export default function Dashboard() {
     const [view, setView] = useState<ViewType>('main');
 
     const resetView = () => setView('main');
+
+    const renderDashboard = () => {
+        switch (CURRENT_USER_ROLE) {
+            case 'Admin': return <DashboardAdminOverlay key="admin" />;
+            case 'Juri': return <DashboardJuriOverlay key="juri" onTeamDetailClick={() => setView('teamView')} />;
+            default: return (
+                <DashboardUserOverlay
+                    key="user"
+                    onDetailClick={() => setView('details')}
+                    onTeamDetailClick={() => setView('teamView')}
+                />
+            );
+        }
+    };
 
     return (
         <div className="min-h-screen w-full relative bg-[#f4f7fa] font-roboto antialiased text-[#1e293b]">
@@ -207,16 +229,7 @@ export default function Dashboard() {
                 )}
 
                 <AnimatePresence mode="wait">
-                    {view === 'main' && (
-                        CURRENT_USER_ROLE === 'Admin'
-                            ? <DashboardAdminOverlay key="admin" />
-                            : <DashboardUserOverlay
-                                key="user"
-                                onDetailClick={() => setView('details')}
-                                onTeamDetailClick={() => setView('teamView')}
-                            />
-                    )}
-
+                    {view === 'main' && renderDashboard()}
                     {view === 'profile' && <ProfileUserOverlay key="profile" />}
                     {view === 'teamView' && <TourViewOverlay key="team" onBack={resetView} />}
                     {view === 'register' && <TeamRegOverlay key="register" />}
