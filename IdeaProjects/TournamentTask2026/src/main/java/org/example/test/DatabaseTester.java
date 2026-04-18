@@ -1,4 +1,4 @@
-package org.example;
+package org.example.test;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;

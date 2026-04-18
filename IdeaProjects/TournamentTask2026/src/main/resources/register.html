@@ -1,46 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Register</title>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        input { display: block; margin: 5px 0; }
-        button { margin-top: 10px; }
-        .response { margin-top: 10px; color: green; }
-        .error { color: red; }
-    </style>
+    <title>Реєстрація</title>
 </head>
 <body>
-<h2>Register</h2>
-<input type="text" id="name" placeholder="Name">
-<input type="email" id="login" placeholder="Email">
-<input type="password" id="password" placeholder="Password">
-<button onclick="register()">Register</button>
-<div class="response" id="response"></div>
-<a href="login.html">Already have an account? Login</a>
+<h1>Реєстрація</h1>
+<form id="registerForm">
+    <label>Ім'я: <input type="text" name="name" required></label><br>
+    <label>Логін: <input type="text" name="login" required></label><br>
+    <label>Пароль: <input type="password" name="password" required></label><br>
+    <button type="submit">Зареєструватися</button>
+</form>
+<p id="message"></p>
 
 <script>
-    function register() {
-        const name = document.getElementById('name').value;
-        const login = document.getElementById('login').value;
-        const password = document.getElementById('password').value;
+    const form = document.getElementById('registerForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = form.name.value;
+        const login = form.login.value;
+        const password = form.password.value;
 
-        fetch('http://localhost:8080/auth/register', {
+        const response = await fetch('http://localhost:8080/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, login, password })
-        })
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('response').innerText = data;
-            document.getElementById('response').className = 'response';
-        })
-        .catch(err => {
-            document.getElementById('response').innerText = err;
-            document.getElementById('response').className = 'error';
         });
-    }
+
+        const messageEl = document.getElementById('message');
+        if (response.ok) {
+            messageEl.innerText = await response.text();
+        } else {
+            messageEl.innerText = 'Помилка реєстрації: ' + await response.text();
+        }
+    });
 </script>
 </body>
 </html>

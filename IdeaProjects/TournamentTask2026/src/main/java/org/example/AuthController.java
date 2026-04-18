@@ -1,8 +1,11 @@
 package org.example;
 
+import org.example.model.User;
 import org.example.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,8 +31,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody User user) {
-        if (userService.authenticate(user.getLogin(), user.getPassword())) {
-            String token = jwtUtil.generateToken(user.getLogin());
+        User authenticated = userService.authenticateUser(user.getLogin(), user.getPassword());
+        if (authenticated != null) {
+            String token = jwtUtil.generateToken(
+                    authenticated.getLogin(),
+                    authenticated.getName(),
+                    authenticated.getRoles().stream()
+                            .map(role -> role.getRoleName())
+                            .collect(Collectors.toSet())
+            );
             return ResponseEntity.ok(token);
         }
         return ResponseEntity.status(401).body("Invalid credentials");
