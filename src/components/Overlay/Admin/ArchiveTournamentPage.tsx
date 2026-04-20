@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import SubmitOverlay from "./SubmitOverlay"; // Переконайся, що назва файлу правильна
+import SubmitOverlay from "./SubmitOverlay";
 
 interface ArchiveTeamData {
     rank: number;
@@ -53,14 +53,12 @@ export default function ArchiveTournamentPage({ onBack, onViewSubmit }: ArchiveT
         <div className="relative mx-auto max-w-6xl px-4 md:px-0 py-6">
             <AnimatePresence mode="wait">
                 {selectedTeam ? (
-                    /* СТОРІНКА САБМІТУ (З'ЯВЛЯЄТЬСЯ ЗАМІСТЬ АРХІВУ) */
                     <SubmitOverlay
                         key="submit-view"
                         team={selectedTeam}
                         onClose={() => setSelectedTeam(null)}
                     />
                 ) : (
-                    /* СТОРІНКА АРХІВУ */
                     <motion.div
                         key="archive-view"
                         initial={{ opacity: 0, x: -10 }}
