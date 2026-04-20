@@ -105,7 +105,6 @@ export default function RateJuryOverlay({ onBack, teamName = "Назва ком�
                             <div className="bg-white/60 backdrop-blur-md rounded-[32px] p-8 border border-white shadow-sm mb-8">
                                 <div className="flex justify-between items-center mb-6">
                                     <div className="flex items-center gap-3">
-                                        <img src="/icons/tech.png" className="w-6 h-6 object-contain opacity-40" alt="" />
                                         <h3 className="text-[16px] font-bold text-[#1e293b]">Технічна частина</h3>
                                     </div>
                                     <span className="text-[12px] font-bold text-[#1e293b]/40 uppercase">Оцінка (макс. 100)</span>
@@ -118,7 +117,6 @@ export default function RateJuryOverlay({ onBack, teamName = "Назва ком�
                             <div className="bg-white/60 backdrop-blur-md rounded-[32px] p-8 border border-white shadow-sm mb-10">
                                 <div className="flex justify-between items-center mb-6">
                                     <div className="flex items-center gap-3">
-                                        <img src="/icons/func.png" className="w-6 h-6 object-contain opacity-40" alt="" />
                                         <h3 className="text-[16px] font-bold text-[#1e293b]">Функціональність</h3>
                                     </div>
                                     <span className="text-[12px] font-bold text-[#1e293b]/40 uppercase">Оцінка (макс. 100)</span>
