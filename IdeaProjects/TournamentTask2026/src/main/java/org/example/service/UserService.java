@@ -1,7 +1,8 @@
-package org.example;
+package org.example.service;
 
 import org.example.model.Role;
 import org.example.model.User;
+import org.example.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,6 @@
-package org.example;
+package org.example.web;
 
+import org.example.service.UserService;
 import org.example.model.User;
 import org.example.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody User user) {
-        User authenticated = userService.authenticateUser(user.getLogin(), user.getPassword());
+        User authenticated = userService.authenticateUser(
+                user.getLogin(),
+                user.getPassword()
+        );
         if (authenticated != null) {
             String token = jwtUtil.generateToken(
                     authenticated.getLogin(),
