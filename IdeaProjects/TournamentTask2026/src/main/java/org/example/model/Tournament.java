@@ -3,6 +3,8 @@ package org.example.model;
 import java.time.LocalDateTime;
 
 public class Tournament {
+
+    private Long id;
     private String title;
     private String description;
     private String rules;
@@ -13,6 +15,14 @@ public class Tournament {
     private String format;
     private String status;
     private Long createdBy;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getTitle() {
         return title;

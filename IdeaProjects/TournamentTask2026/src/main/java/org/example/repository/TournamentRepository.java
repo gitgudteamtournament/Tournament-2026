@@ -46,4 +46,32 @@ public class TournamentRepository {
                 tournament.getCreatedBy()
         );
     }
+
+    public Tournament findById(Long id) {
+
+        String sql = """
+        SELECT *
+        FROM tournaments
+        WHERE id = ?
+    """;
+
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+
+            Tournament tournament = new Tournament();
+
+            tournament.setId(rs.getLong("id"));
+            tournament.setTitle(rs.getString("title"));
+
+            tournament.setRegistrationStart(
+                    rs.getTimestamp("registration_start").toLocalDateTime()
+            );
+
+            tournament.setRegistrationEnd(
+                    rs.getTimestamp("registration_end").toLocalDateTime()
+            );
+
+            return tournament;
+
+        }, id);
+    }
 }

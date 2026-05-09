@@ -1,21 +1,16 @@
 package org.example.dto;
 
+import java.util.List;
+
 public class CreateTeamRequest {
 
     private Long tournamentId;
     private Long captainId;
+    private List<Long> memberIds;
     private String organization;
     private String contactTelegram;
     private String contactDiscord;
     private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public Long getTournamentId() {
         return tournamentId;
@@ -31,6 +26,14 @@ public class CreateTeamRequest {
 
     public void setCaptainId(Long captainId) {
         this.captainId = captainId;
+    }
+
+    public List<Long> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(List<Long> memberIds) {
+        this.memberIds = memberIds;
     }
 
     public String getOrganization() {
@@ -56,4 +59,13 @@ public class CreateTeamRequest {
     public void setContactDiscord(String contactDiscord) {
         this.contactDiscord = contactDiscord;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
 }
