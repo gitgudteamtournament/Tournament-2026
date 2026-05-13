@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Реєстрація</title>
+</head>
+<body>
+<h1>Реєстрація</h1>
+<form id="registerForm">
+    <label>Ім'я: <input type="text" name="name" required></label><br>
+    <label>Логін: <input type="text" name="login" required></label><br>
+    <label>Пароль: <input type="password" name="password" required></label><br>
+    <button type="submit">Зареєструватися</button>
+</form>
+<p id="message"></p>
+
+<script>
+    const form = document.getElementById('registerForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = form.name.value;
+        const login = form.login.value;
+        const password = form.password.value;
+
+        const response = await fetch('http://localhost:8080/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, login, password })
+        });
+
+        const messageEl = document.getElementById('message');
+        if (response.ok) {
+            messageEl.innerText = await response.text();
+        } else {
+            messageEl.innerText = 'Помилка реєстрації: ' + await response.text();
+        }
+    });
+</script>
+</body>
+</html>

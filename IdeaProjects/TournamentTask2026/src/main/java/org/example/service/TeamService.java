@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -77,12 +76,10 @@ public class TeamService {
                 true
         );
 
-        // 7. додаємо інших учасників
         for (Long userId : request.getMemberIds()) {
 
             if (userId == null) continue;
 
-            // не дублюємо капітана
             if (userId.equals(request.getCaptainId())) {
                 continue;
             }
