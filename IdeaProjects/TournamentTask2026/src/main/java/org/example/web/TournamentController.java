@@ -18,7 +18,7 @@ public class TournamentController {
     @PostMapping("/create")
     public ResponseEntity<?> createTournament(
             @RequestParam Long userId,
-            @RequestBody Tournament tournament
+            @RequestBody Tournament tournament //TODO:Change to DTO
     ) {
 
         service.createTournament(userId, tournament);
