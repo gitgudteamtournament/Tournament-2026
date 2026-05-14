@@ -1,9 +1,12 @@
 package org.example.service;
 
+import org.example.dto.TournamentCardDTO;
 import org.example.model.Tournament;
 import org.example.model.TournamentStatus;
 import org.example.repository.TournamentRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TournamentService {
@@ -63,5 +66,10 @@ public class TournamentService {
         if (!repository.isOrganizer(userId)) {
             throw new RuntimeException("User is not an organizer");
         }
+    }
+
+    public List<TournamentCardDTO> getTournaments(String status) {
+
+        return repository.getTournaments(status);
     }
 }

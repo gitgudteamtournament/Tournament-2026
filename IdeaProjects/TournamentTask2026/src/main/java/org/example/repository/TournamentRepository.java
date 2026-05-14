@@ -1,8 +1,11 @@
 package org.example.repository;
 
+import org.example.dto.TournamentCardDTO;
 import org.example.model.Tournament;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class TournamentRepository {
@@ -100,5 +103,63 @@ public class TournamentRepository {
                 String.class,
                 tournamentId
         );
+    }
+
+    public List<TournamentCardDTO> getTournaments(String status) {
+
+        String sql;
+
+        if (status == null || status.isBlank()) {
+
+            sql = """
+            SELECT
+                id,
+                title,
+                description,
+                status,
+                format
+            FROM tournaments
+            ORDER BY start_date DESC
+        """;
+
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+                TournamentCardDTO dto = new TournamentCardDTO();
+
+                dto.setId(rs.getLong("id"));
+                dto.setTitle(rs.getString("title"));
+                dto.setDescription(rs.getString("description"));
+                dto.setStatus(rs.getString("status"));
+                dto.setFormat(rs.getString("format"));
+
+                return dto;
+            });
+        }
+
+        sql = """
+        SELECT
+            id,
+            title,
+            description,
+            status,
+            format
+        FROM tournaments
+        WHERE status = ?
+        ORDER BY start_date DESC
+    """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            TournamentCardDTO dto = new TournamentCardDTO();
+
+            dto.setId(rs.getLong("id"));
+            dto.setTitle(rs.getString("title"));
+            dto.setDescription(rs.getString("description"));
+            dto.setStatus(rs.getString("status"));
+            dto.setFormat(rs.getString("format"));
+
+            return dto;
+
+        }, status);
     }
 }

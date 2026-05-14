@@ -15,7 +15,7 @@ public class TournamentController {
         this.service = service;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<?> createTournament(
             @RequestParam Long userId,
             @RequestBody Tournament tournament
@@ -57,5 +57,15 @@ public class TournamentController {
         service.finishTournament(userId, tournamentId);
 
         return ResponseEntity.ok("Tournament finished");
+    }
+
+    @GetMapping("/get-tournaments")
+    public ResponseEntity<?> getTournaments(
+            @RequestParam(required = false) String status
+    ) {
+
+        return ResponseEntity.ok(
+                service.getTournaments(status)
+        );
     }
 }
