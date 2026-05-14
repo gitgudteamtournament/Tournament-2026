@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.model.Tournament;
+import org.example.model.TournamentStatus;
 import org.example.repository.TournamentRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,5 +23,45 @@ public class TournamentService {
         tournament.setCreatedBy(userId);
 
         repository.createTournament(tournament);
+    }
+
+    public void closeSubmission(Long userId,
+                                Long tournamentId) {
+
+        validateOrganizer(userId);
+
+        repository.updateTournamentStatus(
+                tournamentId,
+                TournamentStatus.SUBMISSION_CLOSED.name()
+        );
+    }
+
+    public void startEvaluation(Long userId,
+                                Long tournamentId) {
+
+        validateOrganizer(userId);
+
+        repository.updateTournamentStatus(
+                tournamentId,
+                TournamentStatus.EVALUATION.name()
+        );
+    }
+
+    public void finishTournament(Long userId,
+                                 Long tournamentId) {
+
+        validateOrganizer(userId);
+
+        repository.updateTournamentStatus(
+                tournamentId,
+                TournamentStatus.FINISHED.name()
+        );
+    }
+
+    private void validateOrganizer(Long userId) {
+
+        if (!repository.isOrganizer(userId)) {
+            throw new RuntimeException("User is not an organizer");
+        }
     }
 }

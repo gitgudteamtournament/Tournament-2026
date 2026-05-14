@@ -20,7 +20,42 @@ public class TournamentController {
             @RequestParam Long userId,
             @RequestBody Tournament tournament
     ) {
+
         service.createTournament(userId, tournament);
+
         return ResponseEntity.ok("Tournament created");
+    }
+
+    @PutMapping("/{tournamentId}/close-submission")
+    public ResponseEntity<?> closeSubmission(
+            @PathVariable Long tournamentId,
+            @RequestParam Long userId
+    ) {
+
+        service.closeSubmission(userId, tournamentId);
+
+        return ResponseEntity.ok("Submission closed");
+    }
+
+    @PutMapping("/{tournamentId}/start-evaluation")
+    public ResponseEntity<?> startEvaluation(
+            @PathVariable Long tournamentId,
+            @RequestParam Long userId
+    ) {
+
+        service.startEvaluation(userId, tournamentId);
+
+        return ResponseEntity.ok("Evaluation started");
+    }
+
+    @PutMapping("/{tournamentId}/finish")
+    public ResponseEntity<?> finishTournament(
+            @PathVariable Long tournamentId,
+            @RequestParam Long userId
+    ) {
+
+        service.finishTournament(userId, tournamentId);
+
+        return ResponseEntity.ok("Tournament finished");
     }
 }

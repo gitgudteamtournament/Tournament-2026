@@ -74,4 +74,31 @@ public class TournamentRepository {
 
         }, id);
     }
+
+    public void updateTournamentStatus(Long tournamentId,
+                                       String status) {
+
+        String sql = """
+        UPDATE tournaments
+        SET status = ?
+        WHERE id = ?
+    """;
+
+        jdbcTemplate.update(sql, status, tournamentId);
+    }
+
+    public String getTournamentStatus(Long tournamentId) {
+
+        String sql = """
+        SELECT status
+        FROM tournaments
+        WHERE id = ?
+    """;
+
+        return jdbcTemplate.queryForObject(
+                sql,
+                String.class,
+                tournamentId
+        );
+    }
 }

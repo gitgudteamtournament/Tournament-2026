@@ -55,6 +55,29 @@ public class UserRepository {
         return user;
     }
 
+    public User findById(Long id) {
+        List<User> users = jdbcTemplate.query(
+                "SELECT * FROM users WHERE id = ?",
+                new Object[]{id},
+                userRowMapper
+        );
+        if (users.isEmpty()) return null;
+        User user = users.get(0);
+        user.setRoles(findRolesByUserId(user.getId()));
+        return user;
+    }
+
+    public List<User> findAllByRole(String roleName) {
+        return jdbcTemplate.query(
+                "SELECT u.* FROM users u " +
+                        "JOIN user_roles ur ON u.id = ur.user_id " +
+                        "JOIN roles r ON ur.role_id = r.id " +
+                        "WHERE r.role_name = ?",
+                new Object[]{roleName},
+                userRowMapper
+        );
+    }
+
     public int save(User user) {
         int result = jdbcTemplate.update(
                 "INSERT INTO users(login, password, name) VALUES (?, ?, ?)",
