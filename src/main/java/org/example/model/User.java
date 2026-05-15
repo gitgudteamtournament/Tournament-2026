@@ -6,7 +6,6 @@ import java.util.Set;
 
 public class User {
     private Long id;
-    @JsonAlias({"email"})
     private String login;
     private String password;
     private String name;
@@ -25,6 +24,7 @@ public class User {
     public void setId(Long id) { this.id = id; }
 
     public String getLogin() { return login; }
+    @JsonAlias({"email"})
     public void setLogin(String login) { this.login = login; }
 
     public String getPassword() { return password; }
