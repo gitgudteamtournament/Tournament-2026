@@ -3,10 +3,14 @@ package org.example.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+@Component
 public class JwtUtil {
     private final String secret = "mysuperlongsecretkeyforjwt256bitsormoredadostlomenya";
     private final long expiration = 3600000;
@@ -30,12 +34,25 @@ public class JwtUtil {
         return getClaims(token);
     }
 
+    public List<String> extractRoles(String token) {
+        return getClaims(token).get("roles", List.class);
+    }
+
     public boolean isTokenValid(String token, String username) {
         return extractUsername(token).equals(username) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
         return getClaims(token).getExpiration().before(new Date());
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Claims getClaims(String token) {
