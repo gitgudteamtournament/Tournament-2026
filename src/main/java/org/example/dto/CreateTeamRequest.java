@@ -5,12 +5,11 @@ import java.util.List;
 public class CreateTeamRequest {
 
     private Long tournamentId;
-    private Long captainId;
-    private List<Long> memberIds;
     private String organization;
     private String contactTelegram;
     private String contactDiscord;
     private String name;
+    private List<MemberInfo> members;
 
     public Long getTournamentId() {
         return tournamentId;
@@ -18,22 +17,6 @@ public class CreateTeamRequest {
 
     public void setTournamentId(Long tournamentId) {
         this.tournamentId = tournamentId;
-    }
-
-    public Long getCaptainId() {
-        return captainId;
-    }
-
-    public void setCaptainId(Long captainId) {
-        this.captainId = captainId;
-    }
-
-    public List<Long> getMemberIds() {
-        return memberIds;
-    }
-
-    public void setMemberIds(List<Long> memberIds) {
-        this.memberIds = memberIds;
     }
 
     public String getOrganization() {
@@ -66,6 +49,53 @@ public class CreateTeamRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<MemberInfo> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<MemberInfo> members) {
+        this.members = members;
+    }
+
+    public static class MemberInfo {
+        private String name;
+        private String email;
+        private String city;
+        private String school;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public String getSchool() {
+            return school;
+        }
+
+        public void setSchool(String school) {
+            this.school = school;
+        }
     }
 
 }
