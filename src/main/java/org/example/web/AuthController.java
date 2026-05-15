@@ -1,12 +1,15 @@
 package org.example.web;
 
-import org.example.service.UserService;
+import org.example.dto.AuthResponse;
+import org.example.dto.LoginRequest;
+import org.example.dto.RegisterRequest;
+import org.example.model.Role;
 import org.example.model.User;
+import org.example.service.UserService;
 import org.example.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -22,44 +25,78 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        if (request.getLogin() == null || request.getLogin().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (request.getName() == null || request.getName().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         User user = new User();
-        user.setLogin(body.getOrDefault("login", body.get("email")));
-        user.setPassword(body.get("password"));
-        user.setName(body.get("name"));
+        user.setLogin(request.getLogin().trim());
+        user.setPassword(request.getPassword());
+        user.setName(request.getName().trim());
 
         User registered = userService.register(user);
-        if (registered != null) {
-            String token = jwtUtil.generateToken(
-                    registered.getLogin(),
-                    registered.getName(),
-                    registered.getRoles().stream()
-                            .map(role -> role.getRoleName())
-                            .collect(Collectors.toSet())
-            );
-            return ResponseEntity.ok(Map.of("token", token));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Registration failed (maybe login exists)"));
+        if (registered == null) {
+            return ResponseEntity.badRequest().build();
         }
+
+        String token = jwtUtil.generateToken(
+                registered.getLogin(),
+                registered.getName(),
+                registered.getRoles().stream()
+                        .map(Role::getRoleName)
+                        .collect(Collectors.toSet())
+        );
+
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                registered.getLogin(),
+                registered.getName(),
+                registered.getRoles().stream()
+                        .map(Role::getRoleName)
+                        .collect(Collectors.toSet())
+        ));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String login = body.getOrDefault("login", body.get("email"));
-        User authenticated = userService.authenticateUser(
-                login,
-                body.get("password")
-        );
-        if (authenticated != null) {
-            String token = jwtUtil.generateToken(
-                    authenticated.getLogin(),
-                    authenticated.getName(),
-                    authenticated.getRoles().stream()
-                            .map(role -> role.getRoleName())
-                            .collect(Collectors.toSet())
-            );
-            return ResponseEntity.ok(Map.of("token", token));
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        if (request.getLogin() == null || request.getLogin().isBlank()) {
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        User authenticated = userService.authenticateUser(
+                request.getLogin().trim(),
+                request.getPassword()
+        );
+
+        if (authenticated == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String token = jwtUtil.generateToken(
+                authenticated.getLogin(),
+                authenticated.getName(),
+                authenticated.getRoles().stream()
+                        .map(Role::getRoleName)
+                        .collect(Collectors.toSet())
+        );
+
+        return ResponseEntity.ok(new AuthResponse(
+                token,
+                authenticated.getLogin(),
+                authenticated.getName(),
+                authenticated.getRoles().stream()
+                        .map(Role::getRoleName)
+                        .collect(Collectors.toSet())
+        ));
     }
 }
