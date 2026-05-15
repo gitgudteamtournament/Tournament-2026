@@ -1,9 +1,12 @@
 package org.example.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 import java.util.Set;
 
 public class User {
     private Long id;
+    @JsonAlias({"email"})
     private String login;
     private String password;
     private String name;
