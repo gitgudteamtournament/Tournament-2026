@@ -58,8 +58,17 @@ public class UserRepository {
         if (existing != null) {
             return existing;
         }
-        jdbcTemplate.update("INSERT INTO roles (role_name) VALUES (?)", roleName);
-        Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            var ps = connection.prepareStatement(
+                    "INSERT INTO roles (role_name) VALUES (?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
+            ps.setString(1, roleName);
+            return ps;
+        }, keyHolder);
+        Number key = keyHolder.getKey();
+        Long id = key != null ? key.longValue() : 1L;
         return new Role(id, roleName);
     }
 

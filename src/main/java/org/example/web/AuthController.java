@@ -7,9 +7,11 @@ import org.example.model.Role;
 import org.example.model.User;
 import org.example.service.UserService;
 import org.example.util.JwtUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,21 +27,25 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (request.getLogin() == null || request.getLogin().isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Login is required"));
         }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Password is required"));
         }
         if (request.getName() == null || request.getName().isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Name is required"));
         }
 
         String login = request.getLogin().trim();
 
         if (userService.loginExists(login)) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Login already exists"));
         }
 
         User user = new User();
@@ -49,7 +55,8 @@ public class AuthController {
 
         User registered = userService.register(user);
         if (registered == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Registration failed"));
         }
 
         String token = jwtUtil.generateToken(
@@ -71,12 +78,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         if (request.getLogin() == null || request.getLogin().isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Login is required"));
         }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Password is required"));
         }
 
         User authenticated = userService.authenticateUser(
@@ -85,7 +94,8 @@ public class AuthController {
         );
 
         if (authenticated == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid credentials"));
         }
 
         String token = jwtUtil.generateToken(
