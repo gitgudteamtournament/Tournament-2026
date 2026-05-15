@@ -5,3 +5,6 @@ target/
 .git/
 .gitignore
 README.md
+TEST_REPORT.md
+Dockerfile
+.dockerignore
