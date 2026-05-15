@@ -24,7 +24,6 @@ public class TournamentRepository {
             JOIN roles r ON ur.role_id = r.id
             WHERE ur.user_id = ? AND r.role_name = 'ORGANIZER'
         """;
-
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
         return count != null && count > 0;
     }
@@ -36,7 +35,6 @@ public class TournamentRepository {
              max_teams, format, status, created_by, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         """;
-
         jdbcTemplate.update(sql,
                 tournament.getTitle(),
                 tournament.getDescription(),
@@ -52,115 +50,59 @@ public class TournamentRepository {
     }
 
     public Tournament findById(Long id) {
-
-        String sql = """
-        SELECT *
-        FROM tournaments
-        WHERE id = ?
-    """;
-
-        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
-
-            Tournament tournament = new Tournament();
-
-            tournament.setId(rs.getLong("id"));
-            tournament.setTitle(rs.getString("title"));
-
-            tournament.setRegistrationStart(
-                    rs.getTimestamp("registration_start").toLocalDateTime()
-            );
-
-            tournament.setRegistrationEnd(
-                    rs.getTimestamp("registration_end").toLocalDateTime()
-            );
-
-            return tournament;
-
+        String sql = "SELECT * FROM tournaments WHERE id = ?";
+        List<Tournament> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Tournament t = new Tournament();
+            t.setId(rs.getLong("id"));
+            t.setTitle(rs.getString("title"));
+            t.setDescription(rs.getString("description"));
+            t.setRules(rs.getString("rules"));
+            if (rs.getTimestamp("start_date") != null)
+                t.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
+            if (rs.getTimestamp("registration_start") != null)
+                t.setRegistrationStart(rs.getTimestamp("registration_start").toLocalDateTime());
+            if (rs.getTimestamp("registration_end") != null)
+                t.setRegistrationEnd(rs.getTimestamp("registration_end").toLocalDateTime());
+            t.setMaxTeams(rs.getObject("max_teams", Integer.class));
+            t.setFormat(rs.getString("format"));
+            t.setStatus(rs.getString("status"));
+            t.setCreatedBy(rs.getLong("created_by"));
+            return t;
         }, id);
+        return list.isEmpty() ? null : list.get(0);
     }
 
-    public void updateTournamentStatus(Long tournamentId,
-                                       String status) {
-
-        String sql = """
-        UPDATE tournaments
-        SET status = ?
-        WHERE id = ?
-    """;
-
-        jdbcTemplate.update(sql, status, tournamentId);
+    public void updateTournamentStatus(Long tournamentId, String status) {
+        jdbcTemplate.update("UPDATE tournaments SET status = ? WHERE id = ?", status, tournamentId);
     }
 
     public String getTournamentStatus(Long tournamentId) {
-
-        String sql = """
-        SELECT status
-        FROM tournaments
-        WHERE id = ?
-    """;
-
-        return jdbcTemplate.queryForObject(
-                sql,
-                String.class,
-                tournamentId
-        );
+        return jdbcTemplate.queryForObject("SELECT status FROM tournaments WHERE id = ?", String.class, tournamentId);
     }
 
     public List<TournamentCardDTO> getTournaments(String status) {
-
         String sql;
-
         if (status == null || status.isBlank()) {
-
-            sql = """
-            SELECT
-                id,
-                title,
-                description,
-                status,
-                format
-            FROM tournaments
-            ORDER BY start_date DESC
-        """;
-
+            sql = "SELECT id, title, description, status, format FROM tournaments ORDER BY start_date DESC";
             return jdbcTemplate.query(sql, (rs, rowNum) -> {
-
                 TournamentCardDTO dto = new TournamentCardDTO();
-
                 dto.setId(rs.getLong("id"));
                 dto.setTitle(rs.getString("title"));
                 dto.setDescription(rs.getString("description"));
                 dto.setStatus(rs.getString("status"));
                 dto.setFormat(rs.getString("format"));
-
                 return dto;
             });
         }
-
-        sql = """
-        SELECT
-            id,
-            title,
-            description,
-            status,
-            format
-        FROM tournaments
-        WHERE status = ?
-        ORDER BY start_date DESC
-    """;
-
+        sql = "SELECT id, title, description, status, format FROM tournaments WHERE status = ? ORDER BY start_date DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-
             TournamentCardDTO dto = new TournamentCardDTO();
-
             dto.setId(rs.getLong("id"));
             dto.setTitle(rs.getString("title"));
             dto.setDescription(rs.getString("description"));
             dto.setStatus(rs.getString("status"));
             dto.setFormat(rs.getString("format"));
-
             return dto;
-
         }, status);
     }
 }

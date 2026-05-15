@@ -1,9 +1,12 @@
 package org.example.web;
 
+import org.example.dto.CreateTournamentRequest;
 import org.example.model.Tournament;
 import org.example.service.TournamentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tournaments")
@@ -18,12 +21,14 @@ public class TournamentController {
     @PostMapping("/create")
     public ResponseEntity<?> createTournament(
             @RequestParam Long userId,
-            @RequestBody Tournament tournament //TODO:Change to DTO
+            @RequestBody CreateTournamentRequest request
     ) {
-
-        service.createTournament(userId, tournament);
-
-        return ResponseEntity.ok("Tournament created");
+        try {
+            service.createTournament(userId, request);
+            return ResponseEntity.ok(Map.of("message", "Tournament created"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{tournamentId}/close-submission")
@@ -31,10 +36,8 @@ public class TournamentController {
             @PathVariable Long tournamentId,
             @RequestParam Long userId
     ) {
-
         service.closeSubmission(userId, tournamentId);
-
-        return ResponseEntity.ok("Submission closed");
+        return ResponseEntity.ok(Map.of("message", "Submission closed"));
     }
 
     @PutMapping("/{tournamentId}/start-evaluation")
@@ -42,10 +45,8 @@ public class TournamentController {
             @PathVariable Long tournamentId,
             @RequestParam Long userId
     ) {
-
         service.startEvaluation(userId, tournamentId);
-
-        return ResponseEntity.ok("Evaluation started");
+        return ResponseEntity.ok(Map.of("message", "Evaluation started"));
     }
 
     @PutMapping("/{tournamentId}/finish")
@@ -53,19 +54,35 @@ public class TournamentController {
             @PathVariable Long tournamentId,
             @RequestParam Long userId
     ) {
-
         service.finishTournament(userId, tournamentId);
+        return ResponseEntity.ok(Map.of("message", "Tournament finished"));
+    }
 
-        return ResponseEntity.ok("Tournament finished");
+    @PutMapping("/{tournamentId}/start")
+    public ResponseEntity<?> startTournament(
+            @PathVariable Long tournamentId,
+            @RequestParam Long userId
+    ) {
+        service.startTournament(userId, tournamentId);
+        return ResponseEntity.ok(Map.of("message", "Tournament started"));
     }
 
     @GetMapping("/get-tournaments")
     public ResponseEntity<?> getTournaments(
             @RequestParam(required = false) String status
     ) {
+        return ResponseEntity.ok(service.getTournaments(status));
+    }
 
-        return ResponseEntity.ok(
-                service.getTournaments(status)
-        );
+    @GetMapping("/{tournamentId}")
+    public ResponseEntity<?> getById(@PathVariable Long tournamentId) {
+        Tournament t = service.getById(tournamentId);
+        if (t == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(t);
+    }
+
+    @GetMapping("/archive")
+    public ResponseEntity<?> getArchive() {
+        return ResponseEntity.ok(service.getTournaments("FINISHED"));
     }
 }
