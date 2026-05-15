@@ -19,18 +19,20 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public boolean loginExists(String login) {
+        return userRepository.existsByLogin(login);
+    }
+
     public User register(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Role defaultRole = userRepository.findRoleByName("TEAM_MEMBER");
-            if (defaultRole == null) {
-                defaultRole = new Role();
-                defaultRole.setId(1L);
-                defaultRole.setRoleName("TEAM_MEMBER");
-            }
+            Role defaultRole = userRepository.findOrCreateRole("TEAM_MEMBER");
             user.setRoles(Set.of(defaultRole));
         }
-        return userRepository.save(user) > 0 ? user : null;
+        Long userId = userRepository.save(user);
+        if (userId == null) return null;
+        user.setId(userId);
+        return user;
     }
 
     public boolean authenticate(String login, String password) {

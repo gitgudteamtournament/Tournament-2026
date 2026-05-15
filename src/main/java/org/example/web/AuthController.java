@@ -36,8 +36,14 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
+        String login = request.getLogin().trim();
+
+        if (userService.loginExists(login)) {
+            return ResponseEntity.badRequest().build();
+        }
+
         User user = new User();
-        user.setLogin(request.getLogin().trim());
+        user.setLogin(login);
         user.setPassword(request.getPassword());
         user.setName(request.getName().trim());
 

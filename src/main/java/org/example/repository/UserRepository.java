@@ -5,8 +5,11 @@ import org.example.model.Role;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +42,25 @@ public class UserRepository {
                 roleRowMapper
         );
         return roles.isEmpty() ? null : roles.get(0);
+    }
+
+    public boolean existsByLogin(String login) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE login = ?",
+                new Object[]{login},
+                Integer.class
+        );
+        return count != null && count > 0;
+    }
+
+    public Role findOrCreateRole(String roleName) {
+        Role existing = findRoleByName(roleName);
+        if (existing != null) {
+            return existing;
+        }
+        jdbcTemplate.update("INSERT INTO roles (role_name) VALUES (?)", roleName);
+        Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        return new Role(id, roleName);
     }
 
     public Set<Role> findRolesByUserId(Long userId) {
@@ -87,19 +109,26 @@ public class UserRepository {
         );
     }
 
-    public int save(User user) {
-        int result = jdbcTemplate.update(
-                "INSERT INTO users(login, password, name) VALUES (?, ?, ?)",
-                user.getLogin(), user.getPassword(), user.getName()
-        );
+    public Long save(User user) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        if (result > 0 && user.getRoles() != null) {
-            Long userId = jdbcTemplate.queryForObject(
-                    "SELECT id FROM users WHERE login = ?",
-                    new Object[]{user.getLogin()},
-                    Long.class
+        jdbcTemplate.update(connection -> {
+            var ps = connection.prepareStatement(
+                    "INSERT INTO users(login, password, name) VALUES (?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
             );
+            ps.setString(1, user.getLogin());
+            ps.setString(2, user.getPassword());
+            ps.setString(3, user.getName());
+            return ps;
+        }, keyHolder);
 
+        Number key = keyHolder.getKey();
+        if (key == null) return null;
+
+        Long userId = key.longValue();
+
+        if (user.getRoles() != null) {
             for (Role role : user.getRoles()) {
                 jdbcTemplate.update(
                         "INSERT INTO user_roles(user_id, role_id) VALUES (?, ?)",
@@ -107,6 +136,7 @@ public class UserRepository {
                 );
             }
         }
-        return result;
+
+        return userId;
     }
 }
