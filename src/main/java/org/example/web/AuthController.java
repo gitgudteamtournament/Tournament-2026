@@ -6,6 +6,7 @@ import org.example.util.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,7 +22,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    public ResponseEntity<String> register(@RequestBody Map<String, String> body) {
+        User user = new User();
+        user.setLogin(body.getOrDefault("login", body.get("email")));
+        user.setPassword(body.get("password"));
+        user.setName(body.get("name"));
+
         User registered = userService.register(user);
         if (registered != null) {
             return ResponseEntity.ok("User registered successfully with login: " + user.getLogin());
@@ -31,10 +37,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
+    public ResponseEntity<String> login(@RequestBody Map<String, String> body) {
+        String login = body.getOrDefault("login", body.get("email"));
         User authenticated = userService.authenticateUser(
-                user.getLogin(),
-                user.getPassword()
+                login,
+                body.get("password")
         );
         if (authenticated != null) {
             String token = jwtUtil.generateToken(
