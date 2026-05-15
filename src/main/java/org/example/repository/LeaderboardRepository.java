@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.dto.LeaderboardRowDTO;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +12,7 @@ public class LeaderboardRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public LeaderboardRepository(JdbcTemplate jdbcTemplate) {
+    public LeaderboardRepository(@Qualifier("mysqlJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

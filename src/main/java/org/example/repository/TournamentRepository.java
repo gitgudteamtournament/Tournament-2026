@@ -2,6 +2,7 @@ package org.example.repository;
 
 import org.example.dto.TournamentCardDTO;
 import org.example.model.Tournament;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +13,7 @@ public class TournamentRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public TournamentRepository(JdbcTemplate jdbcTemplate) {
+    public TournamentRepository(@Qualifier("mysqlJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -21,7 +22,7 @@ public class TournamentRepository {
             SELECT COUNT(*) 
             FROM user_roles ur
             JOIN roles r ON ur.role_id = r.id
-            WHERE ur.user_id = ? AND r.name = 'ORGANIZER'
+            WHERE ur.user_id = ? AND r.role_name = 'ORGANIZER'
         """;
 
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);

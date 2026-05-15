@@ -2,6 +2,7 @@ package org.example.repository;
 
 import org.example.dto.*;
 import org.example.model.UserRole;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +13,7 @@ public class UserProfileRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public UserProfileRepository(JdbcTemplate jdbcTemplate) {
+    public UserProfileRepository(@Qualifier("mysqlJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

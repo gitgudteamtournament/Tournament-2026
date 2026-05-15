@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.dto.UserDashboardDTO;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,7 @@ public class DashboardRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public DashboardRepository(JdbcTemplate jdbcTemplate) {
+    public DashboardRepository(@Qualifier("mysqlJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

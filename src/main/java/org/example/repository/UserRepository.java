@@ -32,6 +32,15 @@ public class UserRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public Role findRoleByName(String name) {
+        List<Role> roles = jdbcTemplate.query(
+                "SELECT id, role_name FROM roles WHERE role_name = ?",
+                new Object[]{name},
+                roleRowMapper
+        );
+        return roles.isEmpty() ? null : roles.get(0);
+    }
+
     public Set<Role> findRolesByUserId(Long userId) {
         List<Role> roles = jdbcTemplate.query(
                 "SELECT r.id, r.role_name FROM roles r " +

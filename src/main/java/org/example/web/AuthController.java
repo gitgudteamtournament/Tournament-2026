@@ -22,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
         User user = new User();
         user.setLogin(body.getOrDefault("login", body.get("email")));
         user.setPassword(body.get("password"));
@@ -30,14 +30,21 @@ public class AuthController {
 
         User registered = userService.register(user);
         if (registered != null) {
-            return ResponseEntity.ok("User registered successfully with login: " + user.getLogin());
+            String token = jwtUtil.generateToken(
+                    registered.getLogin(),
+                    registered.getName(),
+                    registered.getRoles().stream()
+                            .map(role -> role.getRoleName())
+                            .collect(Collectors.toSet())
+            );
+            return ResponseEntity.ok(Map.of("token", token));
         } else {
-            return ResponseEntity.badRequest().body("Registration failed (maybe login exists)");
+            return ResponseEntity.badRequest().body(Map.of("error", "Registration failed (maybe login exists)"));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
         String login = body.getOrDefault("login", body.get("email"));
         User authenticated = userService.authenticateUser(
                 login,
@@ -51,8 +58,8 @@ public class AuthController {
                             .map(role -> role.getRoleName())
                             .collect(Collectors.toSet())
             );
-            return ResponseEntity.ok(token);
+            return ResponseEntity.ok(Map.of("token", token));
         }
-        return ResponseEntity.status(401).body("Invalid credentials");
+        return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
     }
 }

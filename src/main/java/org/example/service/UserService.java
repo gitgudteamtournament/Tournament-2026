@@ -12,17 +12,22 @@ import java.util.Set;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User register(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Role defaultRole = new Role();
-            defaultRole.setId(1L);
+            Role defaultRole = userRepository.findRoleByName("TEAM_MEMBER");
+            if (defaultRole == null) {
+                defaultRole = new Role();
+                defaultRole.setId(1L);
+                defaultRole.setRoleName("TEAM_MEMBER");
+            }
             user.setRoles(Set.of(defaultRole));
         }
         return userRepository.save(user) > 0 ? user : null;
