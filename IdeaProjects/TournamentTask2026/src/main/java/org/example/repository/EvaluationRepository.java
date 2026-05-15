@@ -82,4 +82,12 @@ public class EvaluationRepository {
             "JOIN users u ON e.jury_id = u.id WHERE s.round_id = ?", rowMapper, roundId
         );
     }
+
+    public List<Evaluation> findAll() {
+        return jdbcTemplate.query(
+                "SELECT e.*, u.name as jury_name FROM evaluations e " +
+                        "JOIN users u ON e.jury_id = u.id",
+                rowMapper
+        );
+    }
 }
