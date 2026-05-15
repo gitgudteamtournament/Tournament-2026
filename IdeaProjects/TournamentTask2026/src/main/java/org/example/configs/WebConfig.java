@@ -16,6 +16,7 @@ public class WebConfig {
                 System.out.println("@Bean is working");
                 registry.addMapping("/**")
                         .allowedOrigins("*")
+                        .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*");
             }
