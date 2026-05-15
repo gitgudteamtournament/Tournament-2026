@@ -1,32 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JuryTourOverlay from "./JuryTourOverlay";
-
-interface Tournament {
-    id: number;
-    name: string;
-    date: string;
-    teamsCount: string;
-    submitsCount: string;
-    status: "Running" | "Registration";
-}
-
-const mockTournaments: Tournament[] = [
-    { id: 1, name: "Назва турніру", date: "01.01.26 - 01.01.27", teamsCount: "12", submitsCount: "45", status: "Running" },
-    { id: 2, name: "Назва турніру", date: "01.01.26 - 01.01.27", teamsCount: "8", submitsCount: "12", status: "Registration" },
-    { id: 3, name: "Назва турніру", date: "01.01.26 - 01.01.27", teamsCount: "20", submitsCount: "0", status: "Registration" },
-    { id: 4, name: "Назва турніру", date: "01.01.26 - 01.01.27", teamsCount: "15", submitsCount: "30", status: "Running" },
-];
+import { getTournaments } from "../../../api/tournaments";
+import type { TournamentCard } from "../../../api/tournaments";
 
 export default function DashboardJuriOverlay() {
     const [selectedView, setSelectedView] = useState<"list" | "tourDetail">("list");
+    const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
+    const [tournaments, setTournaments] = useState<TournamentCard[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        getTournaments("EVALUATION")
+            .then(setTournaments)
+            .catch((err) => setError(err.message || "Failed"))
+            .finally(() => setLoading(false));
+    }, []);
 
     return (
         <main className="mt-8 font-roboto">
             <AnimatePresence mode="wait">
-                {selectedView === "tourDetail" ? (
+                {selectedView === "tourDetail" && selectedTournamentId ? (
                     <JuryTourOverlay
                         key="tourDetail"
+                        tournamentId={selectedTournamentId}
                         onBack={() => setSelectedView("list")}
                     />
                 ) : (
@@ -59,39 +57,43 @@ export default function DashboardJuriOverlay() {
                             </div>
                         </div>
 
-                        <section className="rounded-[48px] border border-white/70 bg-white/20 p-10 shadow-2xl backdrop-blur-3xl md:p-16 relative overflow-hidden">
+                        {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
+                    <section className="rounded-[48px] border border-white/70 bg-white/20 p-10 shadow-2xl backdrop-blur-3xl md:p-16 relative overflow-hidden">
                             <h1 className="text-[36px] font-bold text-[#1e293b] mb-12">Призначені турніри</h1>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                                {mockTournaments.map((t) => (
+                                {loading ? (
+                                    <p className="text-[#1e293b]/50 font-medium">Loading...</p>
+                                ) : tournaments.length === 0 ? (
+                                    <p className="text-[#1e293b]/50 font-medium">Немає призначених турнірів</p>
+                                ) : (
+                                tournaments.map((t) => (
                                     <div
                                         key={t.id}
                                         className="group relative rounded-[32px] border border-white/80 bg-white/60 p-8 shadow-sm transition-all hover:shadow-md hover:bg-white/70 backdrop-blur-md"
                                     >
                                         <div className="flex justify-between items-start mb-6">
                                             <div className="space-y-1">
-                                                <h3 className="text-[24px] font-bold text-[#1e293b]">{t.name}</h3>
+                                                <h3 className="text-[24px] font-bold text-[#1e293b]">{t.title}</h3>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <p className="text-[13px] font-medium text-[#1e293b]/50">{t.date}</p>
-                                                    <p className="text-[13px] font-medium text-[#1e293b]/50">{t.teamsCount} команд</p>
-                                                    <p className="text-[13px] font-medium text-[#1e293b]/50">Сабмітів: {t.submitsCount}</p>
+                                                    <p className="text-[13px] font-medium text-[#1e293b]/50">{t.format || "N/A"}</p>
                                                 </div>
                                             </div>
-                                            <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold text-white uppercase tracking-wider ${t.status === 'Running' ? 'bg-[#4ade80]' : 'bg-[#5c75ff]'
-                                                }`}>
+                                            <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold text-white uppercase tracking-wider bg-[#8b5cf6]`}>
                                                 {t.status}
                                             </span>
                                         </div>
                                         <div className="flex justify-end mt-4">
                                             <button
-                                                onClick={() => setSelectedView("tourDetail")}
+                                                onClick={() => { setSelectedTournamentId(t.id); setSelectedView("tourDetail"); }}
                                                 className="rounded-[16px] bg-[#5c75ff] px-12 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-[#5c75ff]/25 transition-all active:scale-95 hover:brightness-110"
                                             >
                                                 Перейти
                                             </button>
                                         </div>
                                     </div>
-                                ))}
+                                ))
+                                )}
                             </div>
                         </section>
                     </motion.div>

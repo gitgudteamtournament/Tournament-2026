@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmDeleteTeamOverlay from "../modals/ConfirmDeleteTeamOverlay";
+import { getTournament } from "../../../api/tournaments";
+import type { Tournament } from "../../../api/tournaments";
 
 const Theme = {
     glassCard: "bg-white/70 backdrop-blur-[20px] border border-white/50 shadow-[0_10px_30px_rgba(0,0,0,0.02)] rounded-[24px]",
@@ -9,9 +11,12 @@ const Theme = {
     btnWhite: "bg-white text-slate-700 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white hover:bg-slate-50 active:scale-95 transition-all font-bold",
 };
 
-export default function TourPageRegistrOverlay({ onClose }: { onClose: () => void }) {
+export default function TourPageRegistrOverlay({ onClose, tournamentId }: { onClose: () => void; tournamentId: number }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const [teams, setTeams] = useState([
         {
@@ -42,6 +47,15 @@ export default function TourPageRegistrOverlay({ onClose }: { onClose: () => voi
             ]
         }
     ]);
+
+    useEffect(() => {
+        if (!tournamentId) return;
+        setLoading(true);
+        getTournament(tournamentId)
+            .then((t) => setTournament(t))
+            .catch((err) => setError(err.message || "Failed to load tournament"))
+            .finally(() => setLoading(false));
+    }, [tournamentId]);
 
     const handleDeleteClick = (teamId: number) => {
         setSelectedTeam(teamId);
@@ -77,13 +91,19 @@ export default function TourPageRegistrOverlay({ onClose }: { onClose: () => voi
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-10 lg:gap-16 items-start">
                         <div className="space-y-8 sm:space-y-10">
                             <div>
-                                <div className="flex items-start sm:items-center gap-3 mb-4">
-                                    <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold text-slate-900 tracking-tight">Назва турніру</h1>
+                                {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium mb-4">{error}</div>}
+                    {loading ? (
+                        <p className="text-slate-400 font-medium">Loading tournament...</p>
+                    ) : (
+                    <>
+                    <div className="flex items-start sm:items-center gap-3 mb-4">
+                                    <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] font-bold text-slate-900 tracking-tight">{tournament?.title || "Назва турніру"}</h1>
                                     <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                                     </button>
                                 </div>
-                                <span className="inline-block bg-[#5c75ff] text-white text-[11px] sm:text-[12px] px-4 sm:px-5 py-1.5 rounded-full font-bold uppercase tracking-[0.05em]">Registration</span>
+                                <span className="inline-block bg-[#5c75ff] text-white text-[11px] sm:text-[12px] px-4 sm:px-5 py-1.5 rounded-full font-bold uppercase tracking-[0.05em]">{tournament?.status || "Registration"}</span>
+                    </>)}
                             </div>
 
                             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
@@ -94,11 +114,8 @@ export default function TourPageRegistrOverlay({ onClose }: { onClose: () => voi
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
                                     <h3 className="text-[18px] sm:text-[22px] font-bold text-slate-800">Опис</h3>
-                                    <button className="text-slate-300 hover:text-slate-600">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                                    </button>
                                 </div>
-                                <p className="text-slate-500 text-[14px] sm:text-[16px] font-medium">Текст опису турніру тут...</p>
+                                <p className="text-slate-500 text-[14px] sm:text-[16px] font-medium">{tournament?.description || "Опис відсутній"}</p>
                             </div>
                         </div>
 

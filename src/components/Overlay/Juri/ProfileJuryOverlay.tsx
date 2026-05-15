@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useAuth } from "../../../context/AuthContext";
 
 const EditIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -53,6 +54,8 @@ const JuryAssignmentCard = ({ teamName, tournamentName, round, deadline, status 
 };
 
 export default function ProfileJuryOverlay() {
+    const { user } = useAuth();
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -66,45 +69,19 @@ export default function ProfileJuryOverlay() {
 
                 <div className="text-center space-y-1 mb-6">
                     <div className="flex items-center justify-center gap-2 text-[#1e293b]">
-                        <h2 className="text-[26px] font-bold tracking-tight">Ім’я Прізвище</h2>
-                        <button className="text-[#1e293b]/50 hover:text-[#5c75ff] transition-colors">
-                            <EditIcon />
-                        </button>
+                        <h2 className="text-[26px] font-bold tracking-tight">{user?.name || "Ім'я"}</h2>
                     </div>
-                    <p className="text-[14px] font-medium text-[#1e293b]/70">example@gmail.com</p>
+                    <p className="text-[14px] font-medium text-[#1e293b]/70">{user?.login || "example@gmail.com"}</p>
                 </div>
 
                 <div className="w-[140px] h-[40px] rounded-[12px] bg-[#5c75ff] text-white flex items-center justify-center font-bold text-[14px] shadow-lg shadow-[#5c75ff]/20">
-                    Журі
+                    {user?.roles?.[0] || "Журі"}
                 </div>
             </section>
 
             <section className="bg-white/40 backdrop-blur-[20px] border border-white/60 rounded-[30px] p-8 md:p-10 shadow-sm min-h-[600px] space-y-6">
                 <h2 className="text-[26px] font-bold text-[#1e293b] mb-2">Призначені роботи</h2>
-
-                <div className="space-y-4">
-                    <JuryAssignmentCard
-                        teamName="Назва команди"
-                        tournamentName="Назва турніру"
-                        round="N"
-                        deadline="дд.мм.рр - дд.мм.рр"
-                        status="SubmissionClosed"
-                    />
-                    <JuryAssignmentCard
-                        teamName="Назва команди"
-                        tournamentName="Назва турніру"
-                        round="N"
-                        deadline="дд.мм.рр - дд.мм.рр"
-                        status="Evaluated"
-                    />
-                    <JuryAssignmentCard
-                        teamName="Назва команди"
-                        tournamentName="Назва турніру"
-                        round="N"
-                        deadline="дд.мм.рр - дд.мм.рр"
-                        status="Evaluated"
-                    />
-                </div>
+                <p className="text-slate-400 font-medium">Дані про призначені роботи будуть доступні після підключення API оцінювання.</p>
             </section>
         </motion.div>
     );

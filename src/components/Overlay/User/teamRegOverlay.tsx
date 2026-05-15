@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createTeam } from "../../../api/teams";
+import { getTournament } from "../../../api/tournaments";
+import { useAuth } from "../../../context/AuthContext";
+import type { Tournament } from "../../../api/tournaments";
 
 interface Participant {
     id: string;
@@ -32,7 +36,15 @@ export const RegistrationHeader = ({ onBack }: { onBack: () => void }) => (
     </motion.header>
 );
 
-export default function TeamRegOverlay() {
+export default function TeamRegOverlay({ tournamentId }: { tournamentId: number }) {
+    const { user } = useAuth();
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [teamName, setTeamName] = useState("");
+    const [captainName, setCaptainName] = useState("");
+    const [captainEmail, setCaptainEmail] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false);
     const [participants, setParticipants] = useState<Participant[]>(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem("participants");
@@ -44,6 +56,12 @@ export default function TeamRegOverlay() {
         }
         return [];
     });
+
+    useEffect(() => {
+        if (tournamentId) {
+            getTournament(tournamentId).then(setTournament).catch(() => {});
+        }
+    }, [tournamentId]);
 
     useEffect(() => {
         localStorage.setItem("participants", JSON.stringify(participants));
@@ -62,8 +80,16 @@ export default function TeamRegOverlay() {
 
     return (
         <motion.main initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-[1000px] mx-auto mt-8 space-y-8">
+            {error && <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
+            {success ? (
+                <section className="bg-white/40 backdrop-blur-[35px] border border-white/50 rounded-[30px] p-8 md:p-12 text-center">
+                    <h1 className="text-[28px] md:text-[36px] font-bold text-[#0f172a] mb-4">Команда зареєстрована!</h1>
+                    <p className="text-[16px] font-medium text-[#1e293b]/70">Ваша команда "{teamName}" успішно зареєстрована в турнірі.</p>
+                </section>
+            ) : (
+            <>
             <section className="bg-white/40 backdrop-blur-[35px] border border-white/50 rounded-[30px] p-8 md:p-12 text-center">
-                <h1 className="text-[28px] md:text-[36px] font-bold text-[#0f172a] mb-8">Назва турніру</h1>
+                <h1 className="text-[28px] md:text-[36px] font-bold text-[#0f172a] mb-8">{tournament?.title || "Завантаження..."}</h1>
                 <div className="text-left">
                     <h2 className="text-[20px] font-bold text-[#0f172a] mb-2">Реєстрація команди</h2>
                     <p className="text-[14px] font-medium text-[#1e293b]/70 leading-relaxed">Заповніть форму для реєстрації команди в турнірі.</p>
@@ -73,16 +99,18 @@ export default function TeamRegOverlay() {
             <section className="bg-white/40 backdrop-blur-[35px] border border-white/50 rounded-[30px] p-8 md:p-12 shadow-sm">
                 <h2 className="text-[24px] font-bold text-[#0f172a] text-center mb-10">Інформація про команду</h2>
                 <div className="max-w-[600px] mx-auto space-y-6">
-                    {["Назва команди *", "ПІБ капітана *", "Email капітана *"].map((label) => (
-                        <div key={label}>
-                            <label className="block text-[13px] font-bold text-[#1e293b] mb-2 ml-1">{label}</label>
-                            <input
-                                type="text"
-                                placeholder={label}
-                                className="w-full h-[48px] rounded-[16px] bg-white/70 border border-white shadow-sm px-5 focus:outline-none focus:ring-2 focus:ring-[#5c75ff]/40 transition-all"
-                            />
-                        </div>
-                    ))}
+                    <div>
+                        <label className="block text-[13px] font-bold text-[#1e293b] mb-2 ml-1">Назва команди *</label>
+                        <input type="text" value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Назва команди *" className="w-full h-[48px] rounded-[16px] bg-white/70 border border-white shadow-sm px-5 focus:outline-none focus:ring-2 focus:ring-[#5c75ff]/40 transition-all" />
+                    </div>
+                    <div>
+                        <label className="block text-[13px] font-bold text-[#1e293b] mb-2 ml-1">ПІБ капітана *</label>
+                        <input type="text" value={captainName} onChange={(e) => setCaptainName(e.target.value)} placeholder="ПІБ капітана *" className="w-full h-[48px] rounded-[16px] bg-white/70 border border-white shadow-sm px-5 focus:outline-none focus:ring-2 focus:ring-[#5c75ff]/40 transition-all" />
+                    </div>
+                    <div>
+                        <label className="block text-[13px] font-bold text-[#1e293b] mb-2 ml-1">Email капітана *</label>
+                        <input type="text" value={captainEmail} onChange={(e) => setCaptainEmail(e.target.value)} placeholder="Email капітана *" className="w-full h-[48px] rounded-[16px] bg-white/70 border border-white shadow-sm px-5 focus:outline-none focus:ring-2 focus:ring-[#5c75ff]/40 transition-all" />
+                    </div>
                 </div>
             </section>
 
@@ -118,10 +146,34 @@ export default function TeamRegOverlay() {
             </section>
 
             <div className="flex justify-center mt-12 mb-10">
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-[#5c75ff] text-white font-bold py-4 px-16 rounded-[16px] shadow-xl hover:brightness-110 transition-all text-[16px]">
-                    Зареєструватися
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={async () => {
+                        if (!teamName || !user?.login) { setError("Team name and authentication required"); return; }
+                        if (!captainName || !captainEmail) { setError("Captain name and email are required"); return; }
+                        setSaving(true);
+                        setError("");
+                        try {
+                            const allMembers = [
+                                { name: captainName, email: captainEmail, city: "", school: "" },
+                                ...participants.filter(p => p.name && p.email),
+                            ];
+                            await createTeam({ tournamentId, name: teamName, members: allMembers });
+                            setSuccess(true);
+                        } catch (err: any) {
+                            setError(err.message || "Registration failed");
+                        } finally {
+                            setSaving(false);
+                        }
+                    }}
+                    disabled={saving}
+                    className="bg-[#5c75ff] text-white font-bold py-4 px-16 rounded-[16px] shadow-xl hover:brightness-110 transition-all text-[16px] disabled:opacity-50"
+                >
+                    {saving ? "Реєстрація..." : "Зареєструватися"}
                 </motion.button>
             </div>
+            </>)}
         </motion.main>
     );
 }

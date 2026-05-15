@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createTournament } from "../../../api/tournaments";
+import { useAuth } from "../../../context/AuthContext";
 
 interface CreateTourProps {
   onClose: () => void;
@@ -30,7 +32,10 @@ const EditIcon = () => (
 );
 
 export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) {
+  const { user } = useAuth();
   const [isPreview, setIsPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -42,6 +47,24 @@ export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) 
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'unset'; };
   }, []);
+
+  const handlePublish = async () => {
+    if (!user?.login) { setError("Not authenticated"); return; }
+    setSaving(true);
+    setError("");
+    try {
+      await createTournament(parseInt(user.login), {
+        title: formData.name,
+        description: formData.description || undefined,
+        format: formData.format === "one-round" ? "SINGLE" : "MULTI",
+      });
+      onSave();
+    } catch (err: any) {
+      setError(err.message || "Failed to create tournament");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6 bg-slate-900/10 backdrop-blur-sm">
@@ -229,8 +252,9 @@ export default function CreateTourOverlay({ onClose, onSave }: CreateTourProps) 
               </div>
             </div>
 
+            {error && <div className="text-center text-red-500 text-[14px] font-bold">{error}</div>}
             <div className="flex justify-center gap-5 mt-16 pt-8 border-t border-white/20">
-              <button onClick={() => onSave(formData)} className={Theme.btnPrimary}>Опублікувати</button>
+              <button onClick={handlePublish} disabled={saving} className={Theme.btnPrimary}>{saving ? "Creating..." : "Опублікувати"}</button>
               <button className={Theme.btnSecondary}>Зберегти</button>
             </div>
           </div>

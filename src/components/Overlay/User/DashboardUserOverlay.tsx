@@ -1,5 +1,7 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getTournaments } from "../../../api/tournaments";
+import type { TournamentCard } from "../../../api/tournaments";
 
 const FilterIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
@@ -53,13 +55,59 @@ const TournamentCard = ({ title, hasSubmit = false, isTeamView = false, isArchiv
 );
 
 interface UserOverlayProps {
-    onDetailClick: () => void;
-    onTeamDetailClick: () => void;
+    onDetailClick: (id?: number) => void;
+    onTeamDetailClick: (id?: number) => void;
 }
 
 export default function DashboardUserOverlay({ onDetailClick, onTeamDetailClick }: UserOverlayProps) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement | null>(null);
+    const [tournaments, setTournaments] = useState<TournamentCard[]>([]);
+    const [archive, setArchive] = useState<TournamentCard[]>([]);
+    const [filter, setFilter] = useState<string | undefined>();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [selectedTourId, setSelectedTourId] = useState<number | undefined>();
+
+    useEffect(() => {
+        setLoading(true);
+        setError("");
+        Promise.all([
+            getTournaments(filter),
+            getTournaments("FINISHED")
+        ])
+            .then(([active, archived]) => {
+                setTournaments(active);
+                setArchive(archived);
+            })
+            .catch((err) => setError(err.message || "Failed to load tournaments"))
+            .finally(() => setLoading(false));
+    }, [filter]);
+
+    const handleFilter = (value: string | undefined) => {
+        setFilter(value);
+        setIsFilterOpen(false);
+    };
+
+    if (loading) {
+        return (
+            <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 space-y-10 pb-20">
+                <div className="flex items-center justify-center py-20">
+                    <div className="text-lg font-bold text-[#1e293b]">Loading tournaments...</div>
+                </div>
+            </motion.main>
+        );
+    }
+
+    if (error) {
+        return (
+            <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 space-y-10 pb-20">
+                <div className="flex items-center justify-center py-20">
+                    <div className="text-lg font-bold text-red-500">{error}</div>
+                </div>
+            </motion.main>
+        );
+    }
 
     return (
         <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 space-y-10 pb-20">
@@ -67,14 +115,19 @@ export default function DashboardUserOverlay({ onDetailClick, onTeamDetailClick 
             <section className="rounded-[28px] bg-white/30 backdrop-blur-[30px] border border-white/50 p-8 shadow-[0_20px_40px_rgba(0,0,0,0.04)]">
                 <h2 className="text-[26px] font-bold mb-8 text-[#0f172a]">Ваші турніри</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="w-full">
-                        <TournamentCard
-                            title="Назва турніру"
-                            hasSubmit
-                            isTeamView
-                            onDetailClick={onTeamDetailClick}
-                        />
-                    </div>
+                    {tournaments.filter(t => ["REGISTRATION", "SUBMISSION_OPEN", "SUBMISSION_CLOSED", "EVALUATION"].includes(t.status)).length === 0 ? (
+                        <p className="text-[#1e293b]/50 font-medium col-span-full">Ви не зареєстровані в жодному турнірі</p>
+                    ) : (
+                        tournaments.filter(t => ["REGISTRATION", "SUBMISSION_OPEN", "SUBMISSION_CLOSED", "EVALUATION"].includes(t.status)).map((t) => (
+                            <TournamentCard
+                                key={t.id}
+                                title={t.title}
+                                hasSubmit={t.status === "SUBMISSION_CLOSED" || t.status === "EVALUATION"}
+                                isTeamView
+                                onDetailClick={() => onTeamDetailClick(t.id)}
+                            />
+                        ))
+                    )}
                 </div>
             </section>
 
@@ -100,12 +153,14 @@ export default function DashboardUserOverlay({ onDetailClick, onTeamDetailClick 
                                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                                     className="absolute right-0 mt-3 w-[200px] bg-white/90 backdrop-blur-[20px] border border-white/60 rounded-[16px] shadow-xl overflow-hidden z-50"
                                 >
-                                    {["Registration open", "Running", "Finished"].map((item) => (
+                                    <button onClick={() => handleFilter(undefined)} className="w-full text-left px-4 py-3 text-[14px] font-semibold text-[#1e293b] hover:bg-[#5c75ff]/10 transition">All</button>
+                                    {["REGISTRATION", "SUBMISSION_OPEN", "EVALUATION", "FINISHED"].map((item) => (
                                         <button
                                             key={item}
+                                            onClick={() => handleFilter(item)}
                                             className="w-full text-left px-4 py-3 text-[14px] font-semibold text-[#1e293b] hover:bg-[#5c75ff]/10 transition"
                                         >
-                                            {item}
+                                            {item.replace(/_/g, ' ')}
                                         </button>
                                     ))}
                                 </motion.div>
@@ -115,9 +170,13 @@ export default function DashboardUserOverlay({ onDetailClick, onTeamDetailClick 
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[1, 2, 3].map((i) => (
-                        <TournamentCard key={i} title="Назва турніру" onDetailClick={onDetailClick} />
-                    ))}
+                    {tournaments.length === 0 ? (
+                        <p className="text-[#1e293b]/50 font-medium col-span-full">Немає активних турнірів</p>
+                    ) : (
+                        tournaments.map((t) => (
+                            <TournamentCard key={t.id} title={t.title} onDetailClick={() => onDetailClick(t.id)} />
+                        ))
+                    )}
                 </div>
             </section>
 
@@ -125,14 +184,18 @@ export default function DashboardUserOverlay({ onDetailClick, onTeamDetailClick 
                 <h2 className="text-[26px] font-bold mb-8 text-[#0f172a]">Ваш архів</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[1, 2, 3].map((i) => (
-                        <TournamentCard
-                            key={`archive-${i}`}
-                            title="Назва"
-                            isArchive={true}
-                            onDetailClick={onDetailClick}
-                        />
-                    ))}
+                    {archive.length === 0 ? (
+                        <p className="text-[#1e293b]/50 font-medium col-span-full">Немає завершених турнірів</p>
+                    ) : (
+                        archive.map((t) => (
+                            <TournamentCard
+                                key={t.id}
+                                title={t.title}
+                                isArchive={true}
+                                onDetailClick={onDetailClick}
+                            />
+                        ))
+                    )}
                 </div>
             </section>
 

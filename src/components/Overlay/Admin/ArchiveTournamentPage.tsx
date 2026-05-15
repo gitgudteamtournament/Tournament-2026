@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SubmitOverlay from "./SubmitOverlay";
+import { getTournament } from "../../../api/tournaments";
+import { getLeaderboard } from "../../../api/leaderboard";
+import type { Tournament } from "../../../api/tournaments";
+import type { LeaderboardRow } from "../../../api/leaderboard";
 
 interface ArchiveTeamData {
     rank: number;
@@ -32,10 +36,30 @@ const itemVariants = {
 interface ArchiveTournamentPageProps {
     onBack?: () => void;
     onViewSubmit?: (team: ArchiveTeamData) => void;
+    tournamentId: number;
 }
 
-export default function ArchiveTournamentPage({ onBack, onViewSubmit }: ArchiveTournamentPageProps) {
+export default function ArchiveTournamentPage({ onBack, onViewSubmit, tournamentId }: ArchiveTournamentPageProps) {
     const [selectedTeam, setSelectedTeam] = useState<ArchiveTeamData | null>(null);
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!tournamentId) return;
+        setLoading(true);
+        Promise.all([
+            getTournament(tournamentId),
+            getLeaderboard(tournamentId),
+        ])
+            .then(([t, lb]) => {
+                setTournament(t);
+                setLeaderboard(lb);
+            })
+            .catch((err) => setError(err.message || "Failed to load"))
+            .finally(() => setLoading(false));
+    }, [tournamentId]);
 
     const getRankColor = (rank: number) => {
         if (rank === 1) return "#F6D84A";
@@ -74,26 +98,25 @@ export default function ArchiveTournamentPage({ onBack, onViewSubmit }: ArchiveT
                         </button>
 
                         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
+                            {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
                             <div className="space-y-6">
                                 <div className="space-y-3">
                                     <h1 className="text-[32px] md:text-[40px] font-bold text-[#0f172a] leading-tight">
-                                        Назва турніру
+                                        {loading ? "Loading..." : tournament?.title || "Назва турніру"}
                                     </h1>
                                     <span className="inline-block rounded-full bg-[#1e293b] px-3 py-1 text-[11px] font-bold tracking-wide text-white">
-                                        Finished
+                                        {tournament?.status || "Finished"}
                                     </span>
                                 </div>
 
                                 <div className="space-y-1.5 text-[14px] font-medium text-[#0f172a]">
-                                    <p>Раундів: 3</p>
-                                    <p>Зареєстровано: N команд</p>
-                                    <p>Сабмітів: N</p>
+                                    <p>Формат: {tournament?.format || "N/A"}</p>
                                 </div>
 
                                 <div className="max-w-md space-y-2">
                                     <h3 className="text-[16px] font-bold text-[#0f172a]">Опис</h3>
                                     <p className="text-[14px] leading-relaxed text-[#0f172a]/80">
-                                        Тут знаходиться детальний опис турніру, його цілей та результатів.
+                                        {tournament?.description || "Опис відсутній"}
                                     </p>
                                 </div>
                             </div>
@@ -149,35 +172,42 @@ export default function ArchiveTournamentPage({ onBack, onViewSubmit }: ArchiveT
                                             animate="show"
                                             className="mt-2"
                                         >
-                                            {archiveLeaderboardData.map((team, index) => (
+                                            {leaderboard.length === 0 ? (
+                                                <p className="px-6 py-8 text-slate-400 text-center font-medium">Немає даних лідерборду</p>
+                                            ) : (
+                                            leaderboard.map((row, index) => {
+                                                const archiveTeam: ArchiveTeamData = { rank: index + 1, name: row.teamName, total: row.totalScore };
+                                                return (
                                                 <motion.div
-                                                    key={team.rank}
+                                                    key={row.teamId}
                                                     variants={itemVariants}
-                                                    className={`grid items-center px-6 py-4 transition-all hover:bg-white/60 ${index !== archiveLeaderboardData.length - 1 ? "border-b border-black/5" : ""}`}
+                                                    className={`grid items-center px-6 py-4 transition-all hover:bg-white/60 ${index !== leaderboard.length - 1 ? "border-b border-black/5" : ""}`}
                                                     style={{ gridTemplateColumns: "50px 1fr 120px 120px", gap: "16px" }}
                                                 >
                                                     <span
                                                         className="text-center text-[18px] md:text-[20px] font-bold"
-                                                        style={{ color: getRankColor(team.rank) }}
+                                                        style={{ color: getRankColor(index + 1) }}
                                                     >
-                                                        {team.rank}
+                                                        {index + 1}
                                                     </span>
                                                     <span className="font-bold text-[#0f172a] text-[14px] md:text-[15px] truncate">
-                                                        {team.name}
+                                                        {row.teamName}
                                                     </span>
                                                     <span className="text-center font-bold text-[#5c75ff] text-[14px] md:text-[15px]">
-                                                        {team.total}
+                                                        {row.totalScore}
                                                     </span>
                                                     <div className="flex justify-end">
                                                         <button
-                                                            onClick={() => handleOpenSubmits(team)}
+                                                            onClick={() => handleOpenSubmits(archiveTeam)}
                                                             className="rounded-full bg-[#5c75ff] px-6 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-blue-500/25 transition-transform active:scale-95 hover:bg-[#4a61e6]"
                                                         >
                                                             Сабміт
                                                         </button>
                                                     </div>
                                                 </motion.div>
-                                            ))}
+                                                );
+                                            })
+                                            )}
                                         </motion.div>
                                     </div>
                                 </div>

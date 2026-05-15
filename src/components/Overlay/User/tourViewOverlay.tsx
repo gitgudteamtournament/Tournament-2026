@@ -1,7 +1,11 @@
-import React, { useState, useId } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NoCertificateOverlay from "./NoCertificateOverlay";
 import CalendarOverlay from "./CalendarOverlay";
+import { getTournament } from "../../../api/tournaments";
+import { getRoundsByTournament } from "../../../api/rounds";
+import type { Tournament } from "../../../api/tournaments";
+import type { Round } from "../../../api/rounds";
 
 const BackChevronIcon = () => (
     <svg width="6" height="10" viewBox="0 0 6 10" fill="none" stroke="#5c75ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -152,9 +156,10 @@ const FormField = ({ label, placeholder = "", isTextArea = false, required = fal
 
 interface TourViewOverlayProps {
     onBack: () => void;
+    tournamentId: number;
 }
 
-export default function TourViewOverlay({ onBack }: TourViewOverlayProps) {
+export default function TourViewOverlay({ onBack, tournamentId }: TourViewOverlayProps) {
     const [activeTab, setActiveTab] = useState<'task' | 'submit' | 'certificate' | 'calendar'>('task');
     const [isRound1Expanded, setIsRound1Expanded] = useState(true);
     const [isRound2Expanded, setIsRound2Expanded] = useState(false);
@@ -163,6 +168,25 @@ export default function TourViewOverlay({ onBack }: TourViewOverlayProps) {
 
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [showNoCert, setShowNoCert] = useState(false);
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [rounds, setRounds] = useState<Round[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!tournamentId) return;
+        setLoading(true);
+        Promise.all([
+            getTournament(tournamentId),
+            getRoundsByTournament(tournamentId),
+        ])
+            .then(([t, r]) => {
+                setTournament(t);
+                setRounds(r);
+            })
+            .catch((err) => setError(err.message || "Failed to load"))
+            .finally(() => setLoading(false));
+    }, [tournamentId]);
 
     return (
         <motion.div
@@ -176,12 +200,13 @@ export default function TourViewOverlay({ onBack }: TourViewOverlayProps) {
                 {showNoCert && <NoCertificateOverlay onClose={() => setShowNoCert(false)} />}
             </AnimatePresence>
 
+            {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
             <aside className="w-full md:w-[320px] flex-shrink-0 bg-white/40 backdrop-blur-[20px] border border-white/60 rounded-[30px] p-8 space-y-6 shadow-sm">
                 <button onClick={onBack} className="flex items-center gap-2 group focus:outline-none ml-1 hover:brightness-105">
                     <BackChevronIcon />
                     <span className="text-[13px] font-medium text-[#1e293b]/70 group-hover:text-[#5c75ff] transition-colors">На головну</span>
                 </button>
-                <h1 className="text-[26px] font-bold text-[#0f172a] leading-tight">Назва</h1>
+                <h1 className="text-[26px] font-bold text-[#0f172a] leading-tight">{loading ? "..." : tournament?.title || "Назва"}</h1>
 
                 <div className="space-y-4 pt-1">
                     <SidebarButton
@@ -190,19 +215,23 @@ export default function TourViewOverlay({ onBack }: TourViewOverlayProps) {
                         onClick={() => setActiveTab('calendar')}
                     />
 
-                    <SidebarButton
-                        title="Раунд 1"
-                        isExpandable
-                        isExpanded={isRound1Expanded}
-                        isActive={isRound1Expanded && (activeTab === 'task' || activeTab === 'submit')}
-                        onClick={() => setIsRound1Expanded(!isRound1Expanded)}
-                    >
-                        <SidebarSubButton title="Завдання" isActive={activeTab === 'task'} onClick={() => setActiveTab('task')} />
-                        <SidebarSubButton title="Подача завдання" isActive={activeTab === 'submit'} onClick={() => setActiveTab('submit')} />
-                    </SidebarButton>
-
-                    <SidebarButton title="Раунд 2" isExpandable isExpanded={isRound2Expanded} onClick={() => setIsRound2Expanded(!isRound2Expanded)} />
-                    <SidebarButton title="Раунд 3" isExpandable isExpanded={isRound3Expanded} onClick={() => setIsRound3Expanded(!isRound3Expanded)} />
+                    {rounds.map((r, idx) => (
+                        <SidebarButton
+                            key={r.id}
+                            title={`Раунд ${r.roundOrder || idx + 1}`}
+                            isExpandable
+                            isExpanded={idx === 0 ? isRound1Expanded : idx === 1 ? isRound2Expanded : isRound3Expanded}
+                            isActive={(idx === 0 ? isRound1Expanded : idx === 1 ? isRound2Expanded : isRound3Expanded) && (activeTab === 'task' || activeTab === 'submit')}
+                            onClick={() => {
+                                if (idx === 0) setIsRound1Expanded(!isRound1Expanded);
+                                else if (idx === 1) setIsRound2Expanded(!isRound2Expanded);
+                                else setIsRound3Expanded(!isRound3Expanded);
+                            }}
+                        >
+                            <SidebarSubButton title="Завдання" isActive={activeTab === 'task'} onClick={() => setActiveTab('task')} />
+                            <SidebarSubButton title="Подача завдання" isActive={activeTab === 'submit'} onClick={() => setActiveTab('submit')} />
+                        </SidebarButton>
+                    ))}
 
                     <SidebarButton
                         title="Сертифікат"

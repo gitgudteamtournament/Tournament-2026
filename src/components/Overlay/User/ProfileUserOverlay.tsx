@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useAuth } from "../../../context/AuthContext";
 
 interface Member {
     name: string;
@@ -83,6 +84,7 @@ const HistoryCard = ({ tourName, date, round, status }: HistoryCardProps) => (
 );
 
 export default function ProfileUserOverlay() {
+    const { user } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -98,20 +100,13 @@ export default function ProfileUserOverlay() {
 
                 <div className="text-center space-y-1 mb-6">
                     <div className="flex items-center justify-center gap-2 text-[#1e293b]">
-                        <h2 className="text-[24px] font-bold">Ім’я Прізвище</h2>
-                        <button
-                            aria-label="Edit profile name"
-                            title="Edit"
-                            className="hover:text-[#5c75ff] transition-colors"
-                        >
-                            <EditIcon />
-                        </button>
+                        <h2 className="text-[24px] font-bold">{user?.name || "Ім'я"}</h2>
                     </div>
-                    <p className="text-[13px] font-medium text-[#1e293b]/60">example@gmail.com</p>
+                    <p className="text-[13px] font-medium text-[#1e293b]/60">{user?.login || "example@gmail.com"}</p>
                 </div>
 
                 <div className="w-full max-w-[140px] h-[44px] rounded-full bg-[#5c75ff] text-white flex items-center justify-center font-bold text-[14px] shadow-lg shadow-[#5c75ff]/20 mb-12 shrink-0">
-                    Учасник
+                    {user?.roles?.[0] || "Учасник"}
                 </div>
 
                 <div className="w-full space-y-2 mb-auto">

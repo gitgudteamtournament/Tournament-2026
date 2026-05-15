@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import TeamRegOverlay, { RegistrationHeader } from "./Overlay/User/teamRegOverlay";
 import TourStatOverlay from "./Overlay/User/tourStatOverlay";
@@ -16,8 +17,9 @@ import TourPageRegistrOverlay from "./Overlay/Admin/TourPageRegistrOverlay";
 import TourPageRunningOverlay from "./Overlay/Admin/TourPageRunningOverlay";
 import ArchiveTournamentPage from "./Overlay/Admin/ArchiveTournamentPage";
 
-type UserRole = 'Admin' | 'User' | 'Juri';
-const CURRENT_USER_ROLE: UserRole = 'Admin';
+import { useAuth } from "../context/AuthContext";
+
+type ViewType = 'main' | 'details' | 'register' | 'teamView' | 'profile' | 'leaderboard' | 'adminCreate' | 'adminTourReg' | 'adminTourRun' | 'adminArchive';
 
 const RobotoFont = () => (
     <style dangerouslySetInnerHTML={{
@@ -56,6 +58,8 @@ const CloseIcon = ({ size = 24, color = "#1e293b" }) => (
 );
 
 const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProfileClick: () => void }) => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
@@ -71,32 +75,35 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
     }, [isNotifOpen]);
 
     const handleLogout = () => {
-        console.log("Logout triggered");
+        logout();
+        navigate("/");
     };
 
+    const userRole = user?.roles?.[0] || 'User';
+
     const NavLinks = () => {
-        if (CURRENT_USER_ROLE === 'Admin') {
+        if (userRole === 'ADMIN') {
             return (
                 <>
                     <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Drafts</button>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Мої турніри</button>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Турніри</button>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Архів</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">My tournaments</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Tournaments</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Archive</button>
                 </>
             );
         }
-        if (CURRENT_USER_ROLE === 'Juri') {
+        if (userRole === 'JURY') {
             return (
                 <>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Призначені турніри</button>
-                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Статистика</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Assigned tournaments</button>
+                    <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Statistics</button>
                 </>
             );
         }
         return (
             <>
-                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Мої турніри</button>
-                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Турніри</button>
+                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">My tournaments</button>
+                <button onClick={onHome} className="hover:text-[#5c75ff] transition-colors text-left">Tournaments</button>
             </>
         );
     };
@@ -144,17 +151,17 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                                     <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
                                         <div className="flex items-center gap-2.5 text-[#1e293b]">
                                             <div className="w-8 h-8 rounded-full bg-[#f8fafc] flex items-center justify-center"><AnnouncementIcon /></div>
-                                            <span className="font-bold text-[17px]">Оголошення</span>
+                                            <span className="font-bold text-[17px]">Announcements</span>
                                         </div>
                                         <button onClick={() => setIsNotifOpen(false)}><CloseIcon size={18} /></button>
                                     </div>
                                     <div className="max-h-[420px] overflow-y-auto p-2">
                                         <div className="px-4 py-4 hover:bg-slate-50/80 rounded-2xl transition-all cursor-pointer group">
                                             <div className="flex justify-between items-start mb-1.5">
-                                                <h4 className="font-bold text-[15px] text-[#1e293b] group-hover:text-[#5c75ff]">Оновлення системи</h4>
-                                                <span className="text-[11px] font-bold text-slate-400 uppercase">Щойно</span>
+                                                <h4 className="font-bold text-[15px] text-[#1e293b] group-hover:text-[#5c75ff]">System update</h4>
+                                                <span className="text-[11px] font-bold text-slate-400 uppercase">Just now</span>
                                             </div>
-                                            <p className="text-[14px] text-slate-500">Турнірна сітка оновлена.</p>
+                                            <p className="text-[14px] text-slate-500">Tournament grid updated.</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -163,18 +170,18 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                     </div>
 
                     <button onClick={onProfileClick} className="flex items-center gap-3 group">
-                        <span className="hidden sm:block text-[14px] font-bold text-[#1e293b] group-hover:text-[#5c75ff]">Ім'я</span>
-                        <div className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5c75ff]/30">І</div>
+                        <span className="hidden sm:block text-[14px] font-bold text-[#1e293b] group-hover:text-[#5c75ff]">{user?.name || 'User'}</span>
+                        <div className="w-9 h-9 rounded-[10px] bg-[#5c75ff] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5c75ff]/30">
+                            {(user?.name || 'U')[0]}
+                        </div>
                     </button>
 
-                    {CURRENT_USER_ROLE === 'User' && (
-                        <button
-                            onClick={handleLogout}
-                            className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all shadow-md active:scale-95"
-                        >
-                            Вихід
-                        </button>
-                    )}
+                    <button
+                        onClick={handleLogout}
+                        className="bg-[#5c75ff] text-white px-5 h-9 rounded-[10px] font-bold text-[13px] hover:brightness-110 transition-all shadow-md active:scale-95"
+                    >
+                        Logout
+                    </button>
                 </div>
             </motion.header>
 
@@ -185,11 +192,9 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
                         <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} className="fixed top-0 left-0 bottom-0 w-64 bg-white z-[58] p-8 pt-24 shadow-2xl lg:hidden">
                             <nav className="flex flex-col h-full gap-6 uppercase text-sm font-bold text-[#0f172a]">
                                 <NavLinks />
-                                {CURRENT_USER_ROLE === 'User' && (
-                                    <div className="mt-auto pb-10">
-                                        <button onClick={handleLogout} className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left font-bold">Вихід</button>
-                                    </div>
-                                )}
+                                <div className="mt-auto pb-10">
+                                    <button onClick={handleLogout} className="text-[#ff4d4d] border-t border-gray-100 pt-6 w-full text-left font-bold">Logout</button>
+                                </div>
                             </nav>
                         </motion.div>
                     </>
@@ -200,14 +205,33 @@ const StandardHeader = ({ onHome, onProfileClick }: { onHome: () => void; onProf
 };
 
 export default function Dashboard() {
-    type ViewType = 'main' | 'details' | 'register' | 'teamView' | 'profile' | 'leaderboard' | 'adminCreate' | 'adminTourReg' | 'adminTourRun' | 'adminArchive';
+    const { user, isLoading } = useAuth();
+    const navigate = useNavigate();
     const [view, setView] = useState<ViewType>('main');
+    const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
 
+    useEffect(() => {
+        if (!isLoading && !user) {
+            navigate("/");
+        }
+    }, [user, isLoading, navigate]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#f4f7fa]">
+                <div className="text-lg font-bold text-[#1e293b]">Loading...</div>
+            </div>
+        );
+    }
+
+    if (!user) return null;
+
+    const userRole = user.roles?.[0] || 'TEAM_MEMBER';
     const resetView = () => setView('main');
 
     const renderDashboard = () => {
-        switch (CURRENT_USER_ROLE) {
-            case 'Admin': return (
+        if (userRole === 'ADMIN') {
+            return (
                 <DashboardAdminOverlay
                     key="admin"
                     onCreateTour={() => setView('adminCreate')}
@@ -216,22 +240,24 @@ export default function Dashboard() {
                     onArchive={() => setView('adminArchive')}
                 />
             );
-            case 'Juri': return <DashboardJuriOverlay key="juri" onTeamDetailClick={() => setView('teamView')} />;
-            default: return (
-                <DashboardUserOverlay
-                    key="user"
-                    onDetailClick={() => setView('details')}
-                    onTeamDetailClick={() => setView('teamView')}
-                />
-            );
         }
+        if (userRole === 'JURY') {
+            return <DashboardJuriOverlay key="juri" onTeamDetailClick={() => setView('teamView')} />;
+        }
+        return (
+            <DashboardUserOverlay
+                key="user"
+                onDetailClick={(id?: number) => { setSelectedTournamentId(id ?? null); setView('details'); }}
+                onTeamDetailClick={(id?: number) => { setSelectedTournamentId(id ?? null); setView('teamView'); }}
+            />
+        );
     };
 
     const renderProfile = () => {
-        if (CURRENT_USER_ROLE === 'Admin') {
+        if (userRole === 'ADMIN') {
             return <ProfileAdminOverlay key="profile" />;
         }
-        if (CURRENT_USER_ROLE === 'Juri') {
+        if (userRole === 'JURY') {
             return <ProfileJuryOverlay key="profile" />;
         }
         return <ProfileUserOverlay key="profile" />;
@@ -257,11 +283,12 @@ export default function Dashboard() {
                     {view === 'main' && renderDashboard()}
                     {view === 'profile' && renderProfile()}
 
-                    {view === 'teamView' && <TourViewOverlay key="team" onBack={resetView} />}
-                    {view === 'register' && <TeamRegOverlay key="register" />}
+                    {view === 'teamView' && <TourViewOverlay key="team" onBack={resetView} tournamentId={selectedTournamentId || 0} />}
+                    {view === 'register' && <TeamRegOverlay key="register" tournamentId={selectedTournamentId || 0} />}
                     {view === 'details' && (
                         <TourStatOverlay
                             key="details"
+                            tournamentId={selectedTournamentId || 0}
                             onRegister={() => setView('register')}
                             onLeaderboardClick={() => setView('leaderboard')}
                         />
@@ -269,6 +296,7 @@ export default function Dashboard() {
                     {view === 'leaderboard' && (
                         <LeaderboardOverlay
                             key="leaderboard"
+                            tournamentId={selectedTournamentId || 0}
                             onBack={() => setView('details')}
                         />
                     )}
@@ -277,7 +305,7 @@ export default function Dashboard() {
                         <CreateTourOverlay
                             key="adminCreate"
                             onClose={resetView}
-                            onSave={(newTour) => {
+                            onSave={(newTour: unknown) => {
                                 console.log("Tour saved:", newTour);
                                 resetView();
                             }}

@@ -1,5 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { getLeaderboard } from "../../../api/leaderboard";
+import { getTournament } from "../../../api/tournaments";
+import type { LeaderboardRow } from "../../../api/leaderboard";
+import type { Tournament } from "../../../api/tournaments";
 
 interface TeamData {
   rank: number;
@@ -121,21 +125,35 @@ function TeamDetails({ team, onBack }: { team: TeamData; onBack: () => void }) {
   );
 }
 
-export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
+export default function LeaderboardOverlay({ onBack, tournamentId }: { onBack: () => void; tournamentId: number }) {
   const [isDetailed, setIsDetailed] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!tournamentId) return;
+    setLoading(true);
+    Promise.all([
+      getTournament(tournamentId),
+      getLeaderboard(tournamentId),
+    ])
+      .then(([t, lb]) => {
+        setTournament(t);
+        setLeaderboard(lb);
+      })
+      .catch((err) => setError(err.message || "Failed to load"))
+      .finally(() => setLoading(false));
+  }, [tournamentId]);
 
   const handleExport = () => {
-    // Используем украинские заголовки
-    const headers = ["Місце", "Команда", "Категорія 1", "Категорія 2", "Категорія 3", "Сума балів"];
-
-    // Используем точку с запятой (;) для правильного разделения по ячейкам в Excel
+    const headers = ["Місце", "Команда", "Сума балів"];
     const csvContent = [
       headers.join(";"),
-      ...leaderboardData.map(t => `${t.rank};"${t.name}";"${t.cat1}";"${t.cat2}";"${t.cat3}";${t.total}`)
+      ...leaderboardData.map((t, i) => `${i + 1};"${t.name}";${t.total}`)
     ].join("\n");
-
-    // Добавляем \uFEFF (BOM) чтобы кириллица читалась корректно
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -154,6 +172,18 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
     return "#8C8B86";
   };
 
+  if (loading) return <div className="mt-8 text-center font-bold text-[#1e293b]">Loading...</div>;
+  if (error) return <div className="mt-8 text-center font-bold text-red-500">{error}</div>;
+
+  const mappedData: TeamData[] = leaderboard.map((row, i) => ({
+    rank: i + 1,
+    name: row.teamName,
+    cat1: `${row.backendAvg || 0}/${row.databaseAvg || 0}`,
+    cat2: `${row.frontendAvg || 0}/${row.functionalityAvg || 0}`,
+    cat3: `${row.usabilityAvg || 0}/${row.completenessAvg || 0}`,
+    total: row.totalScore,
+  }));
+
   return (
     <div className="space-y-6 px-2 md:px-0">
       <motion.div
@@ -168,9 +198,9 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
         </button>
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center justify-between">
           <div>
-            <h2 className="text-[24px] md:text-[32px] font-bold text-[#0f172a]">Назва</h2>
+            <h2 className="text-[24px] md:text-[32px] font-bold text-[#0f172a]">{loading ? "Loading..." : tournament?.title || "Турнір"}</h2>
             <p className="text-[12px] font-medium text-slate-400">
-              З 01.01.26 по 01.01.27 • Раунд 1
+              {tournament?.format || ""} • {tournament?.status || ""}
             </p>
           </div>
 
@@ -247,7 +277,10 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
                     animate="show"
                     className="mt-2 space-y-1"
                   >
-                    {leaderboardData.map((team) => (
+                    {mappedData.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-slate-400 font-medium">Немає даних лідерборду</div>
+                    ) : (
+                      mappedData.map((team) => (
                       <motion.div
                         key={team.rank}
                         variants={itemVariants}
@@ -283,7 +316,8 @@ export default function LeaderboardOverlay({ onBack }: { onBack: () => void }) {
                           </button>
                         </div>
                       </motion.div>
-                    ))}
+                      ))
+                    )}
                   </motion.div>
                 </div>
               </div>

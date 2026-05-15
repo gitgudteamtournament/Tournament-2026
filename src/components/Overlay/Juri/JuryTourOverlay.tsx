@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import InfoJuryOverlay from "./InfoJuryOverlay";
+import { getTournament } from "../../../api/tournaments";
+import { getRoundsByTournament } from "../../../api/rounds";
+import type { Tournament } from "../../../api/tournaments";
+import type { Round } from "../../../api/rounds";
 
 interface RoundCardProps {
     number: number;
@@ -44,11 +48,27 @@ const RoundCard = ({ number, title, dates, days, status, onSelect }: RoundCardPr
     );
 };
 
-export default function JuryTourOverlay({ onBack }: { onBack: () => void }) {
+export default function JuryTourOverlay({ onBack, tournamentId }: { onBack: () => void; tournamentId: number }) {
     const [view, setView] = useState<"rounds" | "roundDetail">("rounds");
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [rounds, setRounds] = useState<Round[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const teamsCount = "N";
-    const daysPlaceholder = 5;
+    useEffect(() => {
+        if (!tournamentId) return;
+        setLoading(true);
+        Promise.all([
+            getTournament(tournamentId),
+            getRoundsByTournament(tournamentId),
+        ])
+            .then(([t, r]) => {
+                setTournament(t);
+                setRounds(r);
+            })
+            .catch((err) => setError(err.message || "Failed to load"))
+            .finally(() => setLoading(false));
+    }, [tournamentId]);
 
     return (
         <AnimatePresence mode="wait">
@@ -71,26 +91,23 @@ export default function JuryTourOverlay({ onBack }: { onBack: () => void }) {
                     </button>
 
                     <div className="flex flex-col lg:flex-row justify-between items-start gap-10">
-                        <div className="flex flex-col gap-6">
+                            {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
+                            <div className="flex flex-col gap-6">
                             <div>
-                                <h1 className="text-[44px] font-bold text-[#1e293b] leading-tight mb-2">Назва турніру</h1>
+                                <h1 className="text-[44px] font-bold text-[#1e293b] leading-tight mb-2">{loading ? "Loading..." : tournament?.title || "Назва турніру"}</h1>
                                 <span className="bg-[#4ade80] text-white text-[11px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">
-                                    Running
+                                    {tournament?.status || "Running"}
                                 </span>
                             </div>
 
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[17px] font-bold text-[#1e293b]">Раундів:</span>
-                                    <span className="text-[17px] font-medium text-[#1e293b]/70">3</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[17px] font-bold text-[#1e293b]">Зареєстровано:</span>
-                                    <span className="text-[17px] font-medium text-[#1e293b]/70">{teamsCount} команд</span>
+                                    <span className="text-[17px] font-medium text-[#1e293b]/70">{rounds.length}</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[17px] font-bold text-[#1e293b]">Тривалість турніру:</span>
-                                    <span className="text-[17px] font-medium text-[#1e293b]/70">01.01.2026 - 01.02.2026</span>
+                                    <span className="text-[17px] font-bold text-[#1e293b]">Формат:</span>
+                                    <span className="text-[17px] font-medium text-[#1e293b]/70">{tournament?.format || "N/A"}</span>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +115,7 @@ export default function JuryTourOverlay({ onBack }: { onBack: () => void }) {
                         <div className="flex flex-col gap-3 max-w-[400px]">
                             <h2 className="text-[28px] font-bold text-[#1e293b]">Опис</h2>
                             <p className="text-[17px] text-[#1e293b]/70 font-medium leading-relaxed">
-                                Короткий опис турніру та його основних цілей для учасників.
+                                {tournament?.description || "Опис відсутній"}
                             </p>
                         </div>
                     </div>
@@ -106,30 +123,21 @@ export default function JuryTourOverlay({ onBack }: { onBack: () => void }) {
                     <div className="mt-16">
                         <h2 className="text-[28px] font-bold text-[#1e293b] mb-8">Раунди</h2>
                         <div className="flex flex-col gap-5">
-                            <RoundCard
-                                number={1}
-                                title="Відбірковий етап"
-                                dates="01.01.2026 - 05.01.2026"
-                                days={daysPlaceholder}
-                                status="Evaluated"
-                                onSelect={() => setView("roundDetail")}
-                            />
-                            <RoundCard
-                                number={2}
-                                title="Півфінал"
-                                dates="06.01.2026 - 10.01.2026"
-                                days={daysPlaceholder}
-                                status="SubmissionClosed"
-                                onSelect={() => setView("roundDetail")}
-                            />
-                            <RoundCard
-                                number={3}
-                                title="Фінал"
-                                dates="11.01.2026 - 15.01.2026"
-                                days={daysPlaceholder}
-                                status="Active"
-                                onSelect={() => setView("roundDetail")}
-                            />
+                            {rounds.length === 0 ? (
+                                <p className="text-slate-400 font-medium">Раунди ще не створено</p>
+                            ) : (
+                                rounds.map((r, idx) => (
+                                    <RoundCard
+                                        key={r.id}
+                                        number={r.roundOrder || idx + 1}
+                                        title={r.title}
+                                        dates={`${r.startTime ? new Date(r.startTime).toLocaleDateString() : "?"} - ${r.endTime ? new Date(r.endTime).toLocaleDateString() : "?"}`}
+                                        days={5}
+                                        status={r.status === "ACTIVE" ? "Active" : r.status === "CLOSED" ? "SubmissionClosed" : "Evaluated"}
+                                        onSelect={() => setView("roundDetail")}
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
                 </motion.div>

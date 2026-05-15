@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { createRound } from "../../../api/rounds";
 
 interface CreateRoundProps {
     onClose: () => void;
-    onSave?: (data: any) => void;
+    tournamentId: number;
+    onSave?: () => void;
 }
 
 const Theme = {
@@ -28,15 +30,15 @@ const TrashIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
 );
 
-export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps) {
+export default function CreateRoundOverlay({ onClose, tournamentId, onSave }: CreateRoundProps) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [techStack, setTechStack] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
 
     const [mustHaves, setMustHaves] = useState([{ id: Date.now(), value: "" }]);
-    const [files, setFiles] = useState<{ id: number; name: string; type: string; url?: string }[]>([]);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -51,22 +53,26 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
         if (mustHaves.length > 1) setMustHaves(mustHaves.filter(item => item.id !== id));
     };
 
-    const addLink = () => {
-        const url = prompt("Введіть посилання:");
-        if (url) setFiles([...files, { id: Date.now(), name: url, type: "Посилання", url }]);
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFiles([...files, { id: Date.now(), name: file.name, type: file.type.split('/')[1].toUpperCase() || "Файл" }]);
+    const handleCreate = async () => {
+        if (!title || !description) { setError("Title and description are required"); return; }
+        setSaving(true);
+        setError("");
+        try {
+            await createRound({
+                tournamentId,
+                title,
+                description,
+                requirements: mustHaves.map(m => m.value).filter(Boolean).join("\n"),
+                startTime: startDate || undefined,
+                endTime: endDate || undefined,
+            });
+            onSave?.();
+            onClose();
+        } catch (err: any) {
+            setError(err.message || "Failed to create round");
+        } finally {
+            setSaving(false);
         }
-    };
-
-    const handleCreate = () => {
-        const data = { title, description, techStack, startDate, endDate, mustHaves, files };
-        console.log("Saving round:", data);
-        onSave?.(data);
     };
 
     return (
@@ -83,10 +89,11 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
                         До турніру
                     </button>
-                    <span className="text-slate-900 font-black text-[18px]">Назва турніру</span>
+                    <span className="text-slate-900 font-black text-[18px]">Турнір #{tournamentId}</span>
                 </div>
 
                 <h1 className="text-[32px] font-black text-[#1e293b] mb-10">Створення раунду</h1>
+                {error && <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     <div className="flex-1">
@@ -204,7 +211,7 @@ export default function CreateRoundOverlay({ onClose, onSave }: CreateRoundProps
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12 pt-10 border-t border-white/30">
-                    <button onClick={handleCreate} className={Theme.btnPrimary}>Створити</button>
+                    <button onClick={handleCreate} disabled={saving} className={Theme.btnPrimary}>{saving ? "Creating..." : "Створити"}</button>
                     <button onClick={onClose} className={Theme.btnSecondary}>Скасувати</button>
                 </div>
             </motion.div>

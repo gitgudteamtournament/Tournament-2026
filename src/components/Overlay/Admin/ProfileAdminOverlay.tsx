@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { img } from "framer-motion/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../../context/AuthContext";
+import { getTournaments } from "../../../api/tournaments";
+import type { TournamentCard } from "../../../api/tournaments";
 
 const EditIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -59,6 +61,13 @@ const TournamentAdminCard = ({ title, date, status }: TournamentCardProps) => {
 };
 
 export default function ProfileAdminOverlay() {
+    const { user } = useAuth();
+    const [tournaments, setTournaments] = useState<TournamentCard[]>([]);
+
+    useEffect(() => {
+        getTournaments().then(setTournaments).catch(() => {});
+    }, []);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -72,16 +81,13 @@ export default function ProfileAdminOverlay() {
 
                 <div className="text-center space-y-1 mb-6">
                     <div className="flex items-center justify-center gap-2 text-[#1e293b]">
-                        <h2 className="text-[26px] font-bold tracking-tight">Ім’я Прізвище</h2>
-                        <button className="text-[#1e293b]/50 hover:text-[#5c75ff] transition-colors">
-                            <EditIcon />
-                        </button>
+                        <h2 className="text-[26px] font-bold tracking-tight">{user?.name || "Ім'я"}</h2>
                     </div>
-                    <p className="text-[14px] font-medium text-[#1e293b]/70">example@gmail.com</p>
+                    <p className="text-[14px] font-medium text-[#1e293b]/70">{user?.login || "example@gmail.com"}</p>
                 </div>
 
                 <div className="w-[140px] h-[40px] rounded-[12px] bg-[#5c75ff] text-white flex items-center justify-center font-bold text-[14px] shadow-lg shadow-[#5c75ff]/20">
-                    Адмін
+                    {user?.roles?.[0] || "Адмін"}
                 </div>
             </section>
 
@@ -89,21 +95,18 @@ export default function ProfileAdminOverlay() {
                 <h2 className="text-[26px] font-bold text-[#1e293b] mb-2">Створені турніри</h2>
 
                 <div className="space-y-4">
-                    <TournamentAdminCard
-                        title="Назва"
-                        date="дд.мм.рр - дд.мм.рр"
-                        status="Finished"
-                    />
-                    <TournamentAdminCard
-                        title="Назва"
-                        date="дд.мм.рр - дд.мм.рр"
-                        status="Registration"
-                    />
-                    <TournamentAdminCard
-                        title="Назва"
-                        date="дд.мм.рр - дд.мм.рр"
-                        status="Running"
-                    />
+                    {tournaments.length === 0 ? (
+                        <p className="text-slate-400 font-medium">Немає створених турнірів</p>
+                    ) : (
+                        tournaments.map((t) => (
+                            <TournamentAdminCard
+                                key={t.id}
+                                title={t.title}
+                                date={t.format || "N/A"}
+                                status={t.status === "FINISHED" ? "Finished" : t.status === "REGISTRATION" ? "Registration" : "Running"}
+                            />
+                        ))
+                    )}
                 </div>
             </section>
         </motion.div>

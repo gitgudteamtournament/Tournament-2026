@@ -3,12 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import AddJuryOverlay from "../modals/AddJuryOverlay";
 import ConfirmDeleteTeamOverlay from "../modals/ConfirmDeleteTeamOverlay";
 import CreateRoundOverlay from "./CreateRoundOverlay";
-import RateOverlay from "./RateOverlay";
 import TourProperty from "./TourProperty";
+import { getTournament } from "../../../api/tournaments";
+import { getRoundsByTournament } from "../../../api/rounds";
+import type { Tournament } from "../../../api/tournaments";
+import type { Round } from "../../../api/rounds";
 
 interface RunningTourProps {
     onClose: () => void;
-    tournamentData?: any;
+    tournamentId: number;
 }
 
 const Theme = {
@@ -20,17 +23,36 @@ const Theme = {
     floatingPlus: "w-12 h-12 bg-[#5c75ff] rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(92,117,255,0.4)] hover:scale-110 active:scale-95 transition-all border-none cursor-pointer absolute -bottom-6 left-1/2 -translate-x-1/2 z-10"
 };
 
-export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
+export default function TourPageRunningOverlay({ onClose, tournamentId }: RunningTourProps) {
     const [isAddJuryOpen, setIsAddJuryOpen] = useState(false);
     const [isCreateRoundOpen, setIsCreateRoundOpen] = useState(false);
     const [isPropertyOpen, setIsPropertyOpen] = useState(false);
     const [selectedRound, setSelectedRound] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: any; name: string; type: 'jury' | 'team' } | null>(null);
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [rounds, setRounds] = useState<Round[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => { document.body.style.overflow = 'unset'; };
     }, []);
+
+    useEffect(() => {
+        if (!tournamentId) return;
+        setLoading(true);
+        Promise.all([
+            getTournament(tournamentId),
+            getRoundsByTournament(tournamentId),
+        ])
+            .then(([t, r]) => {
+                setTournament(t);
+                setRounds(r);
+            })
+            .catch((err) => setError(err.message || "Failed to load"))
+            .finally(() => setLoading(false));
+    }, [tournamentId]);
 
     const handleOpenDetails = (roundName: string) => {
         setSelectedRound(roundName);
@@ -52,20 +74,16 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                 </button>
 
                 <div className="flex flex-col lg:flex-row gap-16 mb-20">
+                    {error && <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-[14px] font-medium">{error}</div>}
                     <div className="flex-1">
                         <div className="flex items-center gap-4 mb-4">
-                            <h1 className="text-[48px] font-black text-[#1e293b] tracking-tight">Назва турніру</h1>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="2.5" className="opacity-20 cursor-pointer hover:opacity-100 transition-opacity"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                            <h1 className="text-[48px] font-black text-[#1e293b] tracking-tight">{loading ? "Loading..." : tournament?.title || "Назва турніру"}</h1>
                         </div>
-                        <span className="bg-[#4aff6c] text-[#0f3d18] px-6 py-1.5 rounded-full font-black text-[11px] uppercase tracking-[1.5px] inline-block mb-8 shadow-sm shadow-[#4aff6c]/20">Running</span>
+                        <span className="bg-[#4aff6c] text-[#0f3d18] px-6 py-1.5 rounded-full font-black text-[11px] uppercase tracking-[1.5px] inline-block mb-8 shadow-sm shadow-[#4aff6c]/20">{loading ? "..." : tournament?.status || "Running"}</span>
 
                         <div className="space-y-4">
-                            <p className="text-[#64748b] font-bold text-[16px]">Раундів: <span className="text-[#1e293b]">3</span></p>
-                            <div className="flex items-center gap-4">
-                                <p className="text-[#64748b] font-bold text-[16px]">До завершення раунда 2: <span className="text-[#1e293b]">N діб N год.</span></p>
-                                <button className="bg-[#5c75ff] text-white px-4 py-1.5 rounded-xl font-black text-[10px] uppercase border-none cursor-pointer">Завершити</button>
-                            </div>
-                            <p className="text-[#64748b] font-bold text-[16px]">Зареєстровано: <span className="text-[#1e293b]">N команд</span></p>
+                            <p className="text-[#64748b] font-bold text-[16px]">Раундів: <span className="text-[#1e293b]">{rounds.length}</span></p>
+                            <p className="text-[#64748b] font-bold text-[16px]">Формат: <span className="text-[#1e293b]">{tournament?.format || "N/A"}</span></p>
                         </div>
                     </div>
 
@@ -78,14 +96,20 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                 <div className="mb-24 relative pb-10">
                     <h2 className={Theme.sectionTitle}>Раунди</h2>
                     <div className="grid gap-6">
-                        {[1, 2, 3].map((r) => (
-                            <RoundCard
-                                key={r}
-                                number={r}
-                                isActive={r === 1}
-                                onDetails={() => handleOpenDetails(`Раунд ${r}: Назва`)}
-                            />
-                        ))}
+                        {rounds.length === 0 ? (
+                            <p className="text-slate-400 font-medium">Раунди ще не створено</p>
+                        ) : (
+                            rounds.map((r, idx) => (
+                                <RoundCard
+                                    key={r.id}
+                                    number={r.roundOrder || idx + 1}
+                                    title={r.title}
+                                    dates={`${r.startTime ? new Date(r.startTime).toLocaleDateString() : "?"} - ${r.endTime ? new Date(r.endTime).toLocaleDateString() : "?"}`}
+                                    isActive={r.status === "ACTIVE"}
+                                    onDetails={() => handleOpenDetails(r.title)}
+                                />
+                            ))
+                        )}
                     </div>
                     <button onClick={() => setIsCreateRoundOpen(true)} className={Theme.floatingPlus}>
                         <PlusIcon />
@@ -106,26 +130,9 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                                 </tr>
                             </thead>
                             <tbody className="text-[14px] font-bold text-[#1e293b]">
-                                {[1, 2, 3].map((t) => (
-                                    <tr key={t} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-10 py-7 text-slate-300 font-black">{t}</td>
-                                        <td className="px-6 py-7">Команда {t}</td>
-                                        <td className="px-6 py-7">
-                                            <div className="flex flex-col">
-                                                <span>Ім'я Прізвище</span>
-                                                <span className="text-[11px] text-slate-400 font-medium">example@gmail.com</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-7">
-                                            <div className="space-y-1 text-[13px]">
-                                                <div className="flex gap-2">Учасник 1 <span className="text-slate-400 font-medium">...</span></div>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-7 text-right">
-                                            <button onClick={() => setDeleteTarget({ id: t, name: 'Team', type: 'team' })} className="bg-[#5c75ff] text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase border-none cursor-pointer">Видалити</button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                <tr className="border-b border-slate-50">
+                                    <td colSpan={5} className="px-10 py-7 text-slate-400 text-center">Дані команд будуть доступні після підключення API</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -134,15 +141,7 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                 <div className="max-w-[600px] relative pb-10">
                     <h2 className={Theme.sectionTitle}>Журі</h2>
                     <div className="bg-white rounded-[35px] shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-slate-100 p-8 space-y-6">
-                        {[1, 2, 3].map((j) => (
-                            <div key={j} className="flex items-center justify-between pb-6 border-b border-slate-50 last:border-0 last:pb-0">
-                                <div>
-                                    <div className="font-black text-[#1e293b] text-[16px]">Суддя {j}</div>
-                                    <div className="text-[12px] text-slate-400 font-bold">jury@gmail.com</div>
-                                </div>
-                                <button onClick={() => setDeleteTarget({ id: j, name: 'Jury', type: 'jury' })} className="bg-[#5c75ff] text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase border-none cursor-pointer">Видалити</button>
-                            </div>
-                        ))}
+                        <p className="text-slate-400 text-center font-medium">Журі ще не призначено</p>
                     </div>
                     <button onClick={() => setIsAddJuryOpen(true)} className={Theme.floatingPlus}>
                         <PlusIcon />
@@ -163,7 +162,7 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
                     />
                 )}
 
-                {isCreateRoundOpen && <CreateRoundOverlay onClose={() => setIsCreateRoundOpen(false)} />}
+                {isCreateRoundOpen && <CreateRoundOverlay onClose={() => setIsCreateRoundOpen(false)} tournamentId={tournamentId} />}
                 {isAddJuryOpen && <AddJuryOverlay onClose={() => setIsAddJuryOpen(false)} />}
                 {deleteTarget && (
                     <ConfirmDeleteTeamOverlay
@@ -177,13 +176,13 @@ export default function TourPageRunningOverlay({ onClose }: RunningTourProps) {
     );
 }
 
-function RoundCard({ number, isActive, onDetails }: { number: number, isActive: boolean, onDetails: () => void }) {
+function RoundCard({ number, title, dates, isActive, onDetails }: { number: number, title: string, dates: string, isActive: boolean, onDetails: () => void }) {
     return (
         <div className={`p-8 rounded-[35px] border transition-all ${isActive ? 'bg-[#e2ff4a]/20 border-[#e2ff4a] shadow-[0_15px_40px_rgba(226,255,74,0.15)]' : 'bg-white border-slate-100 shadow-sm'}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h4 className="text-[20px] font-black text-[#1e293b] mb-1">Раунд {number} : Назва</h4>
-                    <p className="text-slate-400 text-[11px] font-black uppercase tracking-[1.5px]">Тривалість: дд.мм.рррр - дд.мм.рррр</p>
+                    <h4 className="text-[20px] font-black text-[#1e293b] mb-1">Раунд {number} : {title}</h4>
+                    <p className="text-slate-400 text-[11px] font-black uppercase tracking-[1.5px]">Тривалість: {dates}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <button
@@ -191,9 +190,6 @@ function RoundCard({ number, isActive, onDetails }: { number: number, isActive: 
                         className="bg-white text-slate-500 px-7 py-2.5 rounded-[15px] font-black text-[11px] uppercase border border-slate-100 cursor-pointer shadow-sm"
                     >
                         Детальніше
-                    </button>
-                    <button className="bg-[#5c75ff] text-white px-7 py-2.5 rounded-[15px] font-black text-[11px] uppercase border-none cursor-pointer shadow-lg shadow-[#5c75ff]/30">
-                        {isActive ? "Завершити" : "Запустити"}
                     </button>
                 </div>
             </div>
